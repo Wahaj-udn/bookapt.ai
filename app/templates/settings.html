@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Settings — BookApt.ai</title>
+    <meta
+      name="description"
+      content="Manage your profile, calendar connection, AI agent voice and booking preferences for BookApt.ai."
+    />
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}" />
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="wrap">
+        <a class="brand" href="index.html">BookApt<span>.ai</span></a>
+        <nav class="nav" aria-label="Primary">
+          <a href="index.html">Home</a>
+          <a href="onboarding.html">Get Started</a>
+          <a href="dashboard.html">Dashboard</a>
+          <a href="providers.html">Providers</a>
+          <a href="book.html">Book</a>
+          <a href="call.html">Live Call</a>
+          <a href="appointments.html">Appointments</a>
+          <a class="active" href="settings.html">Settings</a>
+        </nav>
+      </div>
+    </header>
+
+    <main>
+      <section>
+        <div class="wrap">
+          <p class="eyebrow">Settings</p>
+          <h1>Your preferences</h1>
+
+          <div class="grid" style="margin-top: 26px">
+            <div class="card">
+              <h3>Profile</h3>
+              <label for="sn">Name</label>
+              <input id="sn" value="Vikas Malluri" />
+              <label for="se">Email</label>
+              <input id="se" value="vikas@example.com" />
+              <label for="sp">Phone</label>
+              <input id="sp" value="+91 XXXXX XXXXX" />
+            </div>
+
+            <div class="card">
+              <h3>Calendar</h3>
+              <p class="tick">✓ Google Calendar connected</p>
+              <label for="dc">Default calendar</label>
+              <select id="dc">
+                <option selected>Personal</option>
+                <option>Work</option>
+              </select>
+              <label for="perm">Calendar permissions</label>
+              <select id="perm">
+                <option selected>Read free/busy only</option>
+                <option>Read and add events</option>
+              </select>
+            </div>
+
+            <div class="card">
+              <h3>AI agent</h3>
+              <label for="an">Agent name</label>
+              <input id="an" value="Ava" />
+              <label for="av">Voice</label>
+              <select id="av">
+                <option selected>Warm</option>
+                <option>Neutral</option>
+                <option>Formal</option>
+              </select>
+              <label for="al">Language</label>
+              <select id="al">
+                <option selected>English (India)</option>
+                <option>English (US)</option>
+                <option>Hindi</option>
+              </select>
+            </div>
+
+            <div class="card">
+              <h3>Booking preferences</h3>
+              <label for="bd">Default appointment duration</label>
+              <select id="bd">
+                <option>30 minutes</option>
+                <option selected>45 minutes</option>
+                <option>60 minutes</option>
+              </select>
+              <label for="bw">Preferred time windows</label>
+              <select id="bw">
+                <option selected>Mornings</option>
+                <option>Afternoons</option>
+                <option>Evenings</option>
+              </select>
+              <label for="bal">Allow calendar alternatives</label>
+              <select id="bal">
+                <option selected>Yes</option>
+                <option>No</option>
+              </select>
+            </div>
+
+            <div class="card">
+              <h3>Privacy &amp; security</h3>
+              <ul class="plain">
+                <li>Connected accounts — Google</li>
+                <li>Call history — kept 90 days</li>
+                <li>Data permissions — calendar free/busy only</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <div class="wrap">BookApt.ai — your AI assistant calls, negotiates and books. Static prototype.</div>
+    </footer>
+  </body>
+</html>

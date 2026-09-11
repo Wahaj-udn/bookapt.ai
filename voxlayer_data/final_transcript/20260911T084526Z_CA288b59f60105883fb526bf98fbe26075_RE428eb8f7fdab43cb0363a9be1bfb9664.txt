@@ -1,0 +1,24 @@
+source=20260911T084526Z_CA288b59f60105883fb526bf98fbe26075_RE428eb8f7fdab43cb0363a9be1bfb9664.mp3
+language=en
+duration=103.6278125
+conversation_source=20260911T084340Z_CA288b59f60105883fb526bf98fbe26075.txt
+
+[0-1.68] user> You have a trial account.
+[1.68-20.46] agent> You have an appointment for leg pains and a fracture for my client. Do you have any availability within the next couple of days? Is there a time available?
+[20.46-24.63] user> This is regarding.
+[24.63-27.99] agent> Could you please confirm if there's an available time?
+[27.99-37.85] user> No, this call is regarding what? It's regarding my clients. It's regarding your clients. Leg pains and fracture.
+[37.85-52.57] agent> They'd like to book an appointment. Is there a slot available? That's right, for my client. Is there an opening available soon? They're experiencing leg pains and a fracture. We need an appointment for about 45 minutes. Is there a time available for that?
+[52.57-56.01] user> OK, watch it before time.
+[56.01-58.33] agent> Anything available on September 12th?
+[58.33-66.94] user> Preferably in the afternoon. OK, then 12.30 should be good.
+[66.98-72.22] agent> I'm sorry, that time doesn't work. Are there any other times available that day?
+[72.22-74.7] user> You tell me at time.
+[74.7-77.1] agent> Any other time on September 12th?
+[77.1-80.9] user> Yeah, you tell me, what time do you want?
+[80.9-82.9] agent> How about 2 p.m. on September 12th?
+[82.9-86.66] user> Would that work? Yeah, yeah, sure.
+[86.66-91.1] agent> Great. To confirm, September 12th at 2 p.m. is confirmed for the appointment.
+[91.1-92.42] user> Thanks for your help.
+[92.42-102.3] agent> Thank you. Your client should rest as much as possible to aid recovery. This information is not medical advice or diagnosis, and you should see a health care professional or seek care.
+[102.3-103.94] user> Goodbye.

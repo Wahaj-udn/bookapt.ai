@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{% if live %}Live AI Call{% else %}Start AI Call{% endif %} — BookApt.ai</title>
+    <meta name="description" content="Watch your AI agent call the provider, negotiate a time and confirm the appointment." />
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}" />
+    {% if live %}
+    <meta http-equiv="refresh" content="30" />
+    {% endif %}
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="wrap">
+        <a class="brand" href="{{ url_for('dashboard.index') }}">BookApt<span>.ai</span></a>
+        <nav class="nav" aria-label="Primary">
+          <a href="{{ url_for('dashboard.index') }}">Dashboard</a>
+          <a href="{{ url_for('providers.list_providers') }}">Providers</a>
+          <a href="{{ url_for('bookings.new_booking_form') }}">Book</a>
+        </nav>
+      </div>
+    </header>
+
+    <main>
+      <section>
+        <div class="wrap">
+          {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}{% for category, message in messages %}
+              <div class="flash flash-{{ category }}">{{ message }}</div>
+            {% endfor %}{% endif %}
+          {% endwith %}
+
+          {% if live %}
+          <p class="eyebrow">● In progress</p>
+          <h1>AI agent is calling…</h1>
+          <p class="lead">{{ booking.title }} &nbsp;·&nbsp; {{ booking.phone }}</p>
+
+          <div class="card" style="margin-top: 22px">
+            <div class="wave" aria-hidden="true">
+              <i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i>
+              <i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i>
+              <i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i>
+              <i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i>
+            </div>
+            <p class="muted" style="margin-top: 16px; font-size: 0.9rem">
+              The AI agent is negotiating on your behalf. This page will auto-refresh every 30 seconds.
+            </p>
+            <div class="btn-row" style="margin-top: 12px">
+              <a href="{{ url_for('bookings.view_booking', booking_id=booking_id) }}" class="btn">View results</a>
+              <a href="{{ url_for('dashboard.index') }}" class="btn ghost">Back to dashboard</a>
+            </div>
+          </div>
+
+          {% else %}
+          <p class="eyebrow">Ready to call</p>
+          <h1>Start AI call</h1>
+          <p class="lead">{{ booking.title }} &nbsp;·&nbsp; {{ booking.phone }}</p>
+
+          <div class="card" style="margin-top: 22px">
+            <h3>Booking summary</h3>
+            <p class="muted">
+              <strong>Provider:</strong> {{ booking.title }} ({{ booking.target_type|title }})<br />
+              <strong>Duration:</strong> {{ booking.required_duration_min }} minutes<br />
+              <strong>Must book by:</strong> {{ booking.max_date }}<br />
+              {% if booking.special_instructions %}
+              <strong>Instructions:</strong> {{ booking.special_instructions }}
+              {% endif %}
+            </p>
+
+            <form method="POST" action="{{ url_for('bookings.start_call', booking_id=booking_id) }}" style="margin-top: 16px">
+              <button type="submit" id="start-call-btn" class="btn">▶ Start AI Call Now</button>
+              <a href="{{ url_for('dashboard.index') }}" class="btn ghost" style="margin-left: 10px">Cancel</a>
+            </form>
+          </div>
+
+          <div class="card" style="margin-top: 24px">
+            <h3>What happens next?</h3>
+            <ul class="plain">
+              <li>🤖 The AI agent will call <strong>{{ booking.phone }}</strong></li>
+              <li>💬 It will negotiate a time that fits your calendar</li>
+              <li>✅ Once confirmed, results will appear on the results page</li>
+            </ul>
+          </div>
+          {% endif %}
+
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <div class="wrap">BookApt.ai — your AI assistant calls, negotiates and books.</div>
+    </footer>
+  </body>
+</html>

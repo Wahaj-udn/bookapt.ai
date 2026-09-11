@@ -1,0 +1,7 @@
+source=20260911T084059Z_CA3374b3a1d37ef89d08d31964b95e5daa_RE216d17ed9b72a051bd9b773234746784.mp3
+language=en
+duration=15.386125
+
+[00:00:00.000 -> 00:00:01.680] You have a trial account.
+[00:00:01.680 -> 00:00:03.920] You can remove this message at any time
+[00:00:03.920 -> 00:00:05.760] by upgrading to a full account.

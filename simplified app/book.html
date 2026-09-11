@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Request an appointment — BookApt.ai</title>
+    <meta
+      name="description"
+      content="Choose your preferred times, explain what you need, and review everything before the AI agent makes the call."
+    />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="wrap">
+        <a class="brand" href="index.html">BookApt<span>.ai</span></a>
+        <nav class="nav" aria-label="Primary">
+          <a href="index.html">Home</a>
+          <a href="onboarding.html">Get Started</a>
+          <a href="dashboard.html">Dashboard</a>
+          <a href="providers.html">Providers</a>
+          <a class="active" href="book.html">Book</a>
+          <a href="call.html">Live Call</a>
+          <a href="appointments.html">Appointments</a>
+          <a href="settings.html">Settings</a>
+        </nav>
+      </div>
+    </header>
+
+    <main>
+      <section>
+        <div class="wrap">
+          <p class="eyebrow">Appointment request</p>
+          <h1>What do you need?</h1>
+
+          <div class="card" style="margin-top: 20px">
+            <span class="pill">Barber</span>
+            <h3 style="margin-top: 12px">Downtown Barber</h3>
+            <p class="muted" style="margin: 0">+91 XXXXX XXXXX</p>
+          </div>
+
+          <div class="grid" style="margin-top: 24px">
+            <div class="card">
+              <h3>Appointment details</h3>
+              <label for="d">Preferred date</label>
+              <input id="d" placeholder="Tomorrow" />
+              <label for="t1">Preferred time</label>
+              <input id="t1" placeholder="10:45 AM" />
+              <label for="t2">Secondary preferred time</label>
+              <input id="t2" placeholder="1:00 PM" />
+              <a href="#" class="btn ghost">+ Add another time</a>
+            </div>
+
+            <div class="card">
+              <h3>Reason for appointment</h3>
+              <textarea rows="5" placeholder="Tell the AI what you need help with…"></textarea>
+              <p class="muted" style="font-size: 0.9rem">
+                The AI will use this information when speaking with the provider. For example: “I
+                need a haircut and beard trim.”
+              </p>
+            </div>
+          </div>
+
+          <div class="card" style="margin-top: 24px">
+            <h3>What if your preferred times aren't available?</h3>
+            <p class="muted">
+              If your preferred times don't work, we can check your Google Calendar and suggest a
+              free time.
+            </p>
+            <label for="win">Calendar availability window</label>
+            <select id="win">
+              <option>Today</option>
+              <option selected>Tomorrow</option>
+              <option>This week</option>
+            </select>
+            <label for="dur">Preferred appointment duration</label>
+            <select id="dur">
+              <option>30 minutes</option>
+              <option selected>45 minutes</option>
+              <option>60 minutes</option>
+            </select>
+            <p class="tick">✓ Google Calendar connected — alternatives enabled</p>
+          </div>
+
+          <div class="card" style="margin-top: 24px">
+            <h2>Ready to make the call?</h2>
+            <ul class="plain">
+              <li><strong>Provider</strong> — Downtown Barber</li>
+              <li><strong>Preferred time</strong> — Tomorrow, 10:45 AM</li>
+              <li><strong>Secondary time</strong> — 1:00 PM</li>
+              <li><strong>Reason</strong> — Haircut and beard trim</li>
+              <li><strong>Calendar alternatives</strong> — Enabled ✓</li>
+            </ul>
+            <p class="muted" style="margin-top: 18px">
+              By starting the call, you authorise the AI agent to contact this provider on your
+              behalf.
+            </p>
+            <div class="btn-row">
+              <a href="call.html" class="btn">Start AI call</a>
+              <a href="#" class="btn ghost">Edit details</a>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <div class="wrap">BookApt.ai — your AI assistant calls, negotiates and books. Static prototype.</div>
+    </footer>
+  </body>
+</html>

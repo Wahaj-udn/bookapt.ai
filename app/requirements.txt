@@ -1,0 +1,27 @@
+# Flask web framework
+flask>=3.0.0,<4.0.0
+
+# Environment variables
+python-dotenv>=1.0.0,<2.0.0
+
+# Google Calendar OAuth + API
+google-api-python-client>=2.100.0,<3.0.0
+google-auth-httplib2>=0.2.0,<1.0.0
+google-auth-oauthlib>=1.1.0,<2.0.0
+
+# Voxlayer calling engine dependencies (for integration)
+twilio>=9.0.0,<10.0.0
+google-genai>=1.14.0,<2.0.0
+websockets>=12.0,<16.0
+faster-whisper>=1.2.0,<2.0.0
+mutagen>=1.47.0,<2.0.0
+
+# Note: audioop-lts requires Python 3.13+
+# For Python 3.11, audioop is built-in (removed in 3.13)
+# If you get audioop errors, upgrade to Python 3.13 or comment out faster-whisper
+
+# Optional: For better performance on GPU (uncomment if you have NVIDIA GPU)
+# nvidia-cublas-cu12>=12.9.1.4,<13.0.0
+# nvidia-cudnn-cu12>=9.14.0.64,<10.0.0
+# nvidia-cuda-runtime-cu12>=12.9.79,<13.0.0
+

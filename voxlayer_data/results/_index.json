@@ -1,0 +1,16 @@
+{
+  "6d6c470f-936d-422c-9f43-e7df06079ce6": {
+    "booking_id": "6d6c470f-936d-422c-9f43-e7df06079ce6",
+    "latest_outcome": "booked",
+    "latest_call_sid": "CA288b59f60105883fb526bf98fbe26075",
+    "latest_summary": "The agent contacted the business to schedule an appointment for a client who is experiencing leg pains and a fracture, requesting a 45-minute slot. After some negotiation regarding availability, an initial offer of 12:30 PM on September 12th was not suitable. Ultimately, the agent successfully booked an appointment for your client for September 12th at 2:00 PM. This appointment is expected to last approximately 45 minutes.",
+    "updated_at": "2026-09-11T08:46:17.611596"
+  },
+  "f9de23c4-ffb3-41c6-8723-8d91ebbec31d": {
+    "booking_id": "f9de23c4-ffb3-41c6-8723-8d91ebbec31d",
+    "latest_outcome": "pending_user_approval",
+    "latest_call_sid": "CAb75251d2f4ace9eb5a3c222a45d964ff",
+    "latest_summary": "The AI booking assistant called Dr. Vikas Ortho to schedule a 45-minute appointment for a client. The client needed to be seen on or before September 12th. Dr. Vikas Ortho did not have any openings within that requested timeframe. However, they did offer an opening on September 13th, which the assistant asked them to tentatively hold pending client approval. The assistant will contact the client and call back to confirm the appointment.",
+    "updated_at": "2026-09-11T08:55:50.402934"
+  }
+}

@@ -1,0 +1,26 @@
+{
+  "booking_id": "f9de23c4-ffb3-41c6-8723-8d91ebbec31d",
+  "calls": [
+    {
+      "booking_id": "f9de23c4-ffb3-41c6-8723-8d91ebbec31d",
+      "call_sid": "CAb75251d2f4ace9eb5a3c222a45d964ff",
+      "outcome": "pending_user_approval",
+      "confirmed_start": null,
+      "confirmed_end": null,
+      "price_mentioned": "",
+      "held_offer_start": null,
+      "held_offer_end": null,
+      "business_conditions": "",
+      "summary": "The AI booking assistant called Dr. Vikas Ortho to schedule a 45-minute appointment for a client. The client needed to be seen on or before September 12th. Dr. Vikas Ortho did not have any openings within that requested timeframe. However, they did offer an opening on September 13th, which the assistant asked them to tentatively hold pending client approval. The assistant will contact the client and call back to confirm the appointment.",
+      "transcript_text": "[AGENT]: Hello, I'm calling to book an appointment with Dr. Vikas Ortho for my client. Do you have any availability soon?\n[USER]: Yeah, I think we do. But what date and time do you want?\n[AGENT]: My client needs an appointment on or before September 12th. And the meeting will take about 45 minutes. Do you have anything available in that time frame?\n[USER]: I'm afraid we don't. I understand.\n[AGENT]: Just to be sure, you don't have any openings at all before September 12th?\n[USER]: Not really. I think we would have one opening on September 13th.\n[AGENT]: Unfortunately, my client needs it done before then. Could you possibly hold that September 13th slot for us tentatively?\n[USER]: That's helpful.\n[AGENT]: Thank you. Let me confirm with my client, and I'll call you right back.\n[USER]: Goodbye.",
+      "recording_path": "D:\\Wahaj\\Projects\\Hackathons\\MRCET\\voxlayer_data\\recordings\\20260911T085518Z_CAb75251d2f4ace9eb5a3c222a45d964ff_REaeaaf9943642b908159a9f095e1b3b47.mp3",
+      "call_duration_seconds": 62,
+      "started_at": "2026-09-11T08:55:50.399553",
+      "raw_extra": {
+        "normalized_transcript_path": "D:\\Wahaj\\Projects\\Hackathons\\MRCET\\voxlayer_data\\normalized_transcript\\20260911T085518Z_CAb75251d2f4ace9eb5a3c222a45d964ff_REaeaaf9943642b908159a9f095e1b3b47.normalized.txt"
+      },
+      "normalized_transcript_path": "D:\\Wahaj\\Projects\\Hackathons\\MRCET\\voxlayer_data\\normalized_transcript\\20260911T085518Z_CAb75251d2f4ace9eb5a3c222a45d964ff_REaeaaf9943642b908159a9f095e1b3b47.normalized.txt",
+      "recorded_at": "2026-09-11T08:55:50.399553"
+    }
+  ]
+}

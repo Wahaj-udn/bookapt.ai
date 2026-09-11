@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Dashboard — BookApt.ai</title>
+    <meta name="description" content="Start a booking, pick a saved provider and see what your AI agent is working on right now." />
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}" />
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="wrap">
+        <a class="brand" href="{{ url_for('dashboard.index') }}">BookApt<span>.ai</span></a>
+        <nav class="nav" aria-label="Primary">
+          <a class="active" href="{{ url_for('dashboard.index') }}">Dashboard</a>
+          <a href="{{ url_for('providers.list_providers') }}">Providers</a>
+          <a href="{{ url_for('bookings.new_booking_form') }}">Book</a>
+        </nav>
+      </div>
+    </header>
+
+    <main>
+      <section>
+        <div class="wrap">
+          {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+              {% for category, message in messages %}
+                <div class="flash flash-{{ category }}">{{ message }}</div>
+              {% endfor %}
+            {% endif %}
+          {% endwith %}
+
+          <p class="eyebrow">Dashboard</p>
+          <h1>Good morning, {{ user_name }}</h1>
+          <p class="lead">What would you like to book today?</p>
+
+          <div class="card" style="margin-top: 26px">
+            <h3>Book an appointment</h3>
+            <div class="btn-row" style="margin-top: 12px">
+              <a href="{{ url_for('bookings.new_booking_form') }}" class="btn">+ New booking</a>
+              <a href="{{ url_for('providers.list_providers') }}" class="btn ghost">Manage providers</a>
+            </div>
+          </div>
+
+          <h2 style="margin-top: 48px">Your saved providers</h2>
+          {% if saved_providers %}
+          <div class="grid">
+            {% for provider in saved_providers[:3] %}
+            <div class="card">
+              <span class="pill">{{ provider.target_type|title }}</span>
+              <h3 style="margin-top: 12px">{{ provider.title }}</h3>
+              <p class="muted">
+                {{ provider.phone }}<br />
+                Added: {{ provider.created_at[:10] }}
+              </p>
+              <a href="{{ url_for('bookings.new_booking_form', provider_id=provider.id) }}" class="btn">Book with {{ provider.title.split()[0] }}</a>
+            </div>
+            {% endfor %}
+          </div>
+          {% else %}
+          <p class="muted">No saved providers yet. <a href="{{ url_for('providers.list_providers') }}">Add your first provider</a></p>
+          {% endif %}
+
+          <h2 style="margin-top: 48px">Recent bookings</h2>
+          {% if recent_bookings %}
+          <div class="grid">
+            {% for b in recent_bookings %}
+            <div class="card">
+              <span class="pill
+                {%- if b.status == 'in_call' %} pill-active
+                {%- elif b.status == 'done' %} pill-done
+                {%- endif %}">
+                {{ b.status|replace('_',' ')|title }}
+              </span>
+              <h3 style="margin-top: 12px">{{ b.title }}</h3>
+              <p class="muted">
+                {{ b.phone }}<br />
+                {{ b.created_at[:10] }}
+                {% if b.special_instructions %}<br /><em>{{ b.special_instructions[:60] }}{% if b.special_instructions|length > 60 %}…{% endif %}</em>{% endif %}
+              </p>
+              <div class="btn-row" style="margin-top: 6px">
+                <a href="{{ url_for('bookings.view_booking', booking_id=b.id) }}" class="btn ghost">View results</a>
+                {% if b.status not in ('done', 'in_call') %}
+                <a href="{{ url_for('bookings.place_call', booking_id=b.id) }}" class="btn">Start call</a>
+                {% endif %}
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+          {% else %}
+          <p class="muted">No bookings yet. <a href="{{ url_for('bookings.new_booking_form') }}">Create your first booking</a></p>
+          {% endif %}
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <div class="wrap">BookApt.ai — your AI assistant calls, negotiates and books.</div>
+    </footer>
+  </body>
+</html>

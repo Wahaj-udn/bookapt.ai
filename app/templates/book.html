@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Request an appointment — BookApt.ai</title>
+    <meta
+      name="description"
+      content="Choose your preferred times, explain what you need, and review everything before the AI agent makes the call."
+    />
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}" />
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="wrap">
+        <a class="brand" href="{{ url_for('dashboard.index') }}">BookApt<span>.ai</span></a>
+        <nav class="nav" aria-label="Primary">
+          <a href="{{ url_for('dashboard.index') }}">Dashboard</a>
+          <a href="{{ url_for('providers.list_providers') }}">Providers</a>
+          <a class="active" href="{{ url_for('bookings.new_booking_form') }}">Book</a>
+        </nav>
+      </div>
+    </header>
+
+    <main>
+      <section>
+        <div class="wrap">
+          {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}{% for category, message in messages %}
+              <div class="flash flash-{{ category }}">{{ message }}</div>
+            {% endfor %}{% endif %}
+          {% endwith %}
+          <p class="eyebrow">Appointment request</p>
+          <h1>What do you need?</h1>
+
+          <form method="POST" action="{{ url_for('bookings.create_booking') }}">
+            {% if provider %}
+            <div class="card" style="margin-top: 20px">
+              <span class="pill">{{ provider.target_type|title }}</span>
+              <h3 style="margin-top: 12px">{{ provider.title }}</h3>
+              <p class="muted" style="margin: 0">{{ provider.phone }}</p>
+              <input type="hidden" name="provider_id" value="{{ provider.id }}" />
+            </div>
+            {% else %}
+            <div class="card" style="margin-top: 20px">
+              <label for="provider_select">Select Provider</label>
+              <select id="provider_select" name="provider_id" required>
+                <option value="">-- Choose a provider --</option>
+                {% for p in all_providers %}
+                <option value="{{ p.id }}">{{ p.title }} ({{ p.target_type|title }})</option>
+                {% endfor %}
+              </select>
+              <p class="muted" style="font-size: 0.9rem">
+                Don't see your provider? <a href="{{ url_for('providers.list_providers') }}">Add a new one</a>
+              </p>
+            </div>
+            {% endif %}
+
+            <div class="grid" style="margin-top: 24px">
+              <div class="card">
+                <h3>Appointment details</h3>
+                <label for="d">Preferred date</label>
+                <input type="date" id="d" name="preferred_date" required />
+                <label for="t1">Preferred time</label>
+                <input type="time" id="t1" name="preferred_time" required />
+                <label for="t2">Secondary preferred time (optional)</label>
+                <input type="time" id="t2" name="secondary_time" />
+              </div>
+
+              <div class="card">
+                <h3>Reason for appointment</h3>
+                <textarea name="reason" rows="5" placeholder="Tell the AI what you need help with…" required></textarea>
+                <p class="muted" style="font-size: 0.9rem">
+                  The AI will use this information when speaking with the provider. For example: “I
+                  need a haircut and beard trim."
+                </p>
+              </div>
+            </div>
+
+            <div class="card" style="margin-top: 24px">
+              <h3>What if your preferred times aren't available?</h3>
+              <p class="muted">
+                If your preferred times don't work, we can check your Google Calendar and suggest a
+                free time.
+              </p>
+              <label>
+                <input type="checkbox" name="use_calendar" checked />
+                Use Google Calendar to find alternatives
+              </label>
+              <label for="win">Calendar availability window</label>
+              <select id="win" name="calendar_window">
+                <option value="today">Today</option>
+                <option value="tomorrow" selected>Tomorrow</option>
+                <option value="this_week">This week</option>
+              </select>
+              <label for="dur">Preferred appointment duration</label>
+              <select id="dur" name="duration">
+                <option value="30">30 minutes</option>
+                <option value="45" selected>45 minutes</option>
+                <option value="60">60 minutes</option>
+              </select>
+            </div>
+
+            <div class="card" style="margin-top: 24px">
+              <h2>Ready to make the call?</h2>
+              <p class="muted" style="margin-top: 18px">
+                By starting the call, you authorize the AI agent to contact this provider on your
+                behalf.
+              </p>
+              <div class="btn-row">
+                <button type="submit" class="btn">Create booking & prepare call</button>
+                <a href="{{ url_for('dashboard.index') }}" class="btn ghost">Cancel</a>
+              </div>
+            </div>
+          </form>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <div class="wrap">BookApt.ai — your AI assistant calls, negotiates and books. Static prototype.</div>
+    </footer>
+  </body>
+</html>

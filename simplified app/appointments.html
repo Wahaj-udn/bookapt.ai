@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Appointments — BookApt.ai</title>
+    <meta
+      name="description"
+      content="See your confirmed appointment, upcoming visits, past bookings and call summaries in one place."
+    />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="wrap">
+        <a class="brand" href="index.html">BookApt<span>.ai</span></a>
+        <nav class="nav" aria-label="Primary">
+          <a href="index.html">Home</a>
+          <a href="onboarding.html">Get Started</a>
+          <a href="dashboard.html">Dashboard</a>
+          <a href="providers.html">Providers</a>
+          <a href="book.html">Book</a>
+          <a href="call.html">Live Call</a>
+          <a class="active" href="appointments.html">Appointments</a>
+          <a href="settings.html">Settings</a>
+        </nav>
+      </div>
+    </header>
+
+    <main>
+      <section>
+        <div class="wrap">
+          <p class="eyebrow tick">✓ Booked</p>
+          <h1>Appointment booked!</h1>
+          <p class="lead">Your AI agent successfully booked the appointment.</p>
+
+          <div class="card" style="margin-top: 20px">
+            <h3>Downtown Barber</h3>
+            <p class="muted" style="margin-bottom: 8px">Tomorrow · 1:00 PM · Haircut and beard trim</p>
+            <p class="tick" style="margin: 0">✓ Confirmed · ✓ Added to Google Calendar</p>
+            <p class="muted" style="font-size: 0.9rem">
+              The AI negotiated this appointment for you.
+            </p>
+            <div class="btn-row">
+              <a href="#" class="btn">View calendar</a>
+              <a href="book.html" class="btn ghost">Book another appointment</a>
+            </div>
+          </div>
+
+          <h2 style="margin-top: 48px">Upcoming</h2>
+          <div class="grid">
+            <div class="card">
+              <span class="pill">Confirmed</span>
+              <h3 style="margin-top: 12px">Downtown Barber</h3>
+              <p class="muted">
+                Haircut + beard trim
+                <br />
+                Tomorrow, 1:00 PM
+                <br />
+                Google Calendar ✓ Synced
+              </p>
+              <div class="btn-row" style="margin-top: 6px">
+                <a href="#" class="btn ghost">Reschedule</a>
+                <a href="#" class="btn ghost">Cancel</a>
+              </div>
+            </div>
+            <div class="card">
+              <span class="pill">Pending</span>
+              <h3 style="margin-top: 12px">Dr. Rao Clinic</h3>
+              <p class="muted">
+                Back pain consultation
+                <br />
+                Friday, 5:30 PM
+                <br />
+                AI is negotiating a time
+              </p>
+            </div>
+          </div>
+
+          <h2 style="margin-top: 48px">History</h2>
+          <div class="grid">
+            <div class="card">
+              <span class="pill">Completed</span>
+              <h3 style="margin-top: 12px">ABC Auto Care</h3>
+              <p class="muted">August 2, 2026 · 11:00 AM · Headlight repair</p>
+              <a href="#" class="btn ghost">View call summary</a>
+            </div>
+            <div class="card">
+              <span class="pill">Cancelled</span>
+              <h3 style="margin-top: 12px">Bright Smile Dental</h3>
+              <p class="muted">July 4, 2026 · 9:00 AM · Cleaning</p>
+            </div>
+            <div class="card">
+              <span class="pill">Failed to book</span>
+              <h3 style="margin-top: 12px">City Salon</h3>
+              <p class="muted">
+                June 18, 2026 · Provider didn't answer. Could not find a mutually available time.
+              </p>
+              <a href="#" class="btn ghost">Try another date</a>
+            </div>
+          </div>
+
+          <h2 style="margin-top: 48px">Notifications</h2>
+          <div class="card">
+            <ul class="plain">
+              <li><span class="tick">✓ Appointment confirmed</span> — Your barber appointment is confirmed for tomorrow at 1:00 PM.</li>
+              <li>⚠ Preferred time unavailable — The AI agent is looking for another available slot.</li>
+              <li><span class="tick">✓ Alternative found</span> — Your appointment has been booked for 1:00 PM.</li>
+              <li>✕ Booking unsuccessful — We couldn't find an available appointment.</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <div class="wrap">BookApt.ai — your AI assistant calls, negotiates and books. Static prototype.</div>
+    </footer>
+  </body>
+</html>

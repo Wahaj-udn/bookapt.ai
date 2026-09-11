@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>My providers — BookApt.ai</title>
+    <meta
+      name="description"
+      content="Save doctors, salons, barbers, mechanics and dentists once, then book them again in a single tap."
+    />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="wrap">
+        <a class="brand" href="index.html">BookApt<span>.ai</span></a>
+        <nav class="nav" aria-label="Primary">
+          <a href="index.html">Home</a>
+          <a href="onboarding.html">Get Started</a>
+          <a href="dashboard.html">Dashboard</a>
+          <a class="active" href="providers.html">Providers</a>
+          <a href="book.html">Book</a>
+          <a href="call.html">Live Call</a>
+          <a href="appointments.html">Appointments</a>
+          <a href="settings.html">Settings</a>
+        </nav>
+      </div>
+    </header>
+
+    <main>
+      <section>
+        <div class="wrap">
+          <p class="eyebrow">Providers</p>
+          <h1>My providers</h1>
+
+          <div class="grid" style="margin-top: 26px">
+            <div class="card">
+              <span class="pill">Barber</span>
+              <h3 style="margin-top: 12px">Downtown Barber</h3>
+              <p class="muted">
+                +91 XXXXX XXXXX
+                <br />
+                Last booked: September 10, 2026
+              </p>
+              <a href="book.html" class="btn">Call my barber</a>
+              <div class="btn-row">
+                <a href="#" class="btn ghost">Edit</a>
+                <a href="#" class="btn ghost">Delete</a>
+              </div>
+            </div>
+
+            <div class="card">
+              <span class="pill">Mechanic</span>
+              <h3 style="margin-top: 12px">ABC Auto Care</h3>
+              <p class="muted">
+                +91 XXXXX XXXXX
+                <br />
+                Last booked: August 2, 2026
+              </p>
+              <a href="book.html" class="btn">Book service</a>
+              <div class="btn-row">
+                <a href="#" class="btn ghost">Edit</a>
+                <a href="#" class="btn ghost">Delete</a>
+              </div>
+            </div>
+          </div>
+
+          <div class="card" style="margin-top: 40px">
+            <h2>Add a service provider</h2>
+            <label for="t">Provider type</label>
+            <select id="t">
+              <option>Doctor</option>
+              <option>Hospital</option>
+              <option>Salon</option>
+              <option selected>Barber</option>
+              <option>Mechanic</option>
+              <option>Dentist</option>
+              <option>Other</option>
+            </select>
+            <label for="bn">Provider / business name</label>
+            <input id="bn" placeholder="Downtown Barber" />
+            <label for="bp">Phone number</label>
+            <input id="bp" placeholder="+91 XXXXX XXXXX" />
+            <label for="ba">Address</label>
+            <input id="ba" placeholder="12 Market Street" />
+            <label for="bnote">Anything the AI should know about this provider?</label>
+            <textarea id="bnote" rows="3" placeholder="Ask for Ravi, closed on Mondays."></textarea>
+            <button class="btn" type="button">Save provider</button>
+            <p class="tick" style="margin-top: 18px">✓ Provider saved</p>
+            <p class="muted">
+              Next time, you can call this provider directly without entering their details again.
+            </p>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <div class="wrap">BookApt.ai — your AI assistant calls, negotiates and books. Static prototype.</div>
+    </footer>
+  </body>
+</html>

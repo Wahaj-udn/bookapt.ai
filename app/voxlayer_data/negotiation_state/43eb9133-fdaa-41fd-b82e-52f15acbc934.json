@@ -1,0 +1,19 @@
+{
+  "booking_id": "43eb9133-fdaa-41fd-b82e-52f15acbc934",
+  "state": "in_call",
+  "call_count": 1,
+  "call_sids": [
+    "CA3374b3a1d37ef89d08d31964b95e5daa"
+  ],
+  "held_offer_start": null,
+  "held_offer_end": null,
+  "last_outcome": null,
+  "updated_at": "2026-09-11T08:40:33.307850",
+  "history": [
+    {
+      "event": "call_started",
+      "call_sid": "CA3374b3a1d37ef89d08d31964b95e5daa",
+      "at": "2026-09-11T08:40:33.307850"
+    }
+  ]
+}

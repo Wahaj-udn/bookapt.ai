@@ -1,0 +1,25 @@
+{
+  "booking_id": "6a2d0df5-051e-43c9-9d25-ee6bf6a05d46",
+  "state": "in_call",
+  "call_count": 2,
+  "call_sids": [
+    "CAd2e2f9b5cbd259a28d942f17ec10f343",
+    "CA30bfd02d8bb090efada0885da89223e4"
+  ],
+  "held_offer_start": null,
+  "held_offer_end": null,
+  "last_outcome": null,
+  "updated_at": "2026-09-11T08:38:51.323127",
+  "history": [
+    {
+      "event": "call_started",
+      "call_sid": "CAd2e2f9b5cbd259a28d942f17ec10f343",
+      "at": "2026-09-11T08:38:22.434806"
+    },
+    {
+      "event": "call_started",
+      "call_sid": "CA30bfd02d8bb090efada0885da89223e4",
+      "at": "2026-09-11T08:38:51.323127"
+    }
+  ]
+}

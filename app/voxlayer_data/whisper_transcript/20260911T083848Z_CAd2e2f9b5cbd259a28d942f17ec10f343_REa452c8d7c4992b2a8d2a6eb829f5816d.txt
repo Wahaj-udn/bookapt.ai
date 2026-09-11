@@ -1,0 +1,5 @@
+source=20260911T083848Z_CAd2e2f9b5cbd259a28d942f17ec10f343_REa452c8d7c4992b2a8d2a6eb829f5816d.mp3
+language=en
+duration=14.2628125
+
+[00:00:00.000 -> 00:00:02.000] You have a trial account.

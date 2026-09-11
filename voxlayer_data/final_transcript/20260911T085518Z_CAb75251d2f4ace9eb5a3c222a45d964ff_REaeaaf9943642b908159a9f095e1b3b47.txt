@@ -1,0 +1,16 @@
+source=20260911T085518Z_CAb75251d2f4ace9eb5a3c222a45d964ff_REaeaaf9943642b908159a9f095e1b3b47.mp3
+language=en
+duration=61.831875
+conversation_source=20260911T085414Z_CAb75251d2f4ace9eb5a3c222a45d964ff.txt
+
+[0-6.25] user> You have a trial account. You can remove this message.
+[6.25-14.45] agent> Hello, I'm calling to book an appointment with Dr. Vikas Ortho for my client. Do you have any availability soon?
+[14.45-25.06] user> Yeah, I think we do. But what date and time do you want?
+[25.06-34.22] agent> My client needs an appointment on or before September 12th. And the meeting will take about 45 minutes. Do you have anything available in that time frame?
+[34.22-38.74] user> I'm afraid we don't. I understand.
+[38.74-41.18] agent> Just to be sure, you don't have any openings at all
+[41.18-53.26] user> before September 12th? Not really. I think we would have one opening on September 13th. Unfortunately, my client needs it done before then.
+[53.26-55.74] agent> Could you possibly hold that September 13th slot
+[55.74-57.62] user> for us tentatively? That's helpful.
+[57.62-60.86] agent> Thank you. Let me confirm with my client, and I'll call you right back.
+[60.86-62.5] user> Goodbye.

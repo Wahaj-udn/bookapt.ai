@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Dashboard — BookApt.ai</title>
+    <meta
+      name="description"
+      content="Start a booking, pick a saved provider and see what your AI agent is working on right now."
+    />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="wrap">
+        <a class="brand" href="index.html">BookApt<span>.ai</span></a>
+        <nav class="nav" aria-label="Primary">
+          <a href="index.html">Home</a>
+          <a href="onboarding.html">Get Started</a>
+          <a class="active" href="dashboard.html">Dashboard</a>
+          <a href="providers.html">Providers</a>
+          <a href="book.html">Book</a>
+          <a href="call.html">Live Call</a>
+          <a href="appointments.html">Appointments</a>
+          <a href="settings.html">Settings</a>
+        </nav>
+      </div>
+    </header>
+
+    <main>
+      <section>
+        <div class="wrap">
+          <p class="eyebrow">Dashboard</p>
+          <h1>Good morning, Vikas</h1>
+          <p class="lead">What would you like to book today?</p>
+
+          <div class="card" style="margin-top: 26px">
+            <h3>Book an appointment</h3>
+            <label for="cat">Who are you booking with?</label>
+            <select id="cat">
+              <option>Doctor</option>
+              <option>Hospital</option>
+              <option>Salon</option>
+              <option selected>Barber</option>
+              <option>Mechanic</option>
+              <option>Dentist</option>
+              <option>Therapist</option>
+              <option>Other</option>
+            </select>
+            <div class="btn-row" style="margin-top: 0">
+              <a href="book.html" class="btn">Continue</a>
+              <a href="providers.html" class="btn ghost">+ Add new provider</a>
+            </div>
+          </div>
+
+          <h2 style="margin-top: 48px">Your saved providers</h2>
+          <div class="grid">
+            <div class="card">
+              <span class="pill">Barber</span>
+              <h3 style="margin-top: 12px">Downtown Barber</h3>
+              <p class="muted">
+                +91 XXXXX XXXXX
+                <br />
+                Last booked: September 10, 2026
+              </p>
+              <a href="book.html" class="btn">Book with Downtown Barber</a>
+            </div>
+            <div class="card">
+              <span class="pill">Mechanic</span>
+              <h3 style="margin-top: 12px">ABC Auto Care</h3>
+              <p class="muted">
+                +91 XXXXX XXXXX
+                <br />
+                Last booked: August 2, 2026
+              </p>
+              <a href="book.html" class="btn">Book with ABC Auto Care</a>
+            </div>
+            <div class="card">
+              <span class="pill">Doctor</span>
+              <h3 style="margin-top: 12px">Dr. Rao Clinic</h3>
+              <p class="muted">
+                +91 XXXXX XXXXX
+                <br />
+                Last booked: July 18, 2026
+              </p>
+              <a href="book.html" class="btn">Book with Dr. Rao Clinic</a>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <div class="wrap">BookApt.ai — your AI assistant calls, negotiates and books. Static prototype.</div>
+    </footer>
+  </body>
+</html>

@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Get set up — BookApt.ai</title>
+    <meta
+      name="description"
+      content="Sign in with Google, connect your calendar and set your booking preferences in four short steps."
+    />
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}" />
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="wrap">
+        <a class="brand" href="index.html">BookApt<span>.ai</span></a>
+        <nav class="nav" aria-label="Primary">
+          <a href="index.html">Home</a>
+          <a class="active" href="onboarding.html">Get Started</a>
+          <a href="dashboard.html">Dashboard</a>
+          <a href="providers.html">Providers</a>
+          <a href="book.html">Book</a>
+          <a href="call.html">Live Call</a>
+          <a href="appointments.html">Appointments</a>
+          <a href="settings.html">Settings</a>
+        </nav>
+      </div>
+    </header>
+
+    <main>
+      <section>
+        <div class="wrap">
+          <p class="eyebrow">Account · Calendar · Preferences · Ready</p>
+          <h1>Let's get you set up.</h1>
+
+          <div class="grid" style="margin-top: 30px">
+            <div class="card">
+              <h3>1. Your account</h3>
+              <a href="#" class="btn" style="margin-bottom: 20px">Continue with Google</a>
+              <label for="n">Name</label>
+              <input id="n" placeholder="Vikas Malluri" />
+              <label for="p">Phone number</label>
+              <input id="p" placeholder="+91 XXXXX XXXXX" />
+              <label for="e">Email</label>
+              <input id="e" placeholder="you@example.com" />
+            </div>
+
+            <div class="card">
+              <h3>2. Calendar</h3>
+              <p class="muted">
+                Your calendar helps the AI find alternative times when your preferred appointment
+                slots are unavailable.
+              </p>
+              <a href="#" class="btn ghost">Connect Google Calendar</a>
+              <p class="tick" style="margin-top: 18px">● Google Calendar — Connected</p>
+              <p class="muted" style="font-size: 0.9rem">
+                Your calendar is only used to identify available appointment times. You control
+                when calendar access is granted.
+              </p>
+            </div>
+          </div>
+
+          <div class="btn-row">
+            <a href="dashboard.html" class="btn">Continue</a>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <div class="wrap">BookApt.ai — your AI assistant calls, negotiates and books. Static prototype.</div>
+    </footer>
+  </body>
+</html>

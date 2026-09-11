@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>My providers — BookApt.ai</title>
+    <meta
+      name="description"
+      content="Save doctors, salons, barbers, mechanics and dentists once, then book them again in a single tap."
+    />
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}" />
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="wrap">
+        <a class="brand" href="{{ url_for('dashboard.index') }}">BookApt<span>.ai</span></a>
+        <nav class="nav" aria-label="Primary">
+          <a href="{{ url_for('dashboard.index') }}">Dashboard</a>
+          <a class="active" href="{{ url_for('providers.list_providers') }}">Providers</a>
+          <a href="{{ url_for('bookings.new_booking_form') }}">Book</a>
+        </nav>
+      </div>
+    </header>
+
+    <main>
+      <section>
+        <div class="wrap">
+          {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}{% for category, message in messages %}
+              <div class="flash flash-{{ category }}">{{ message }}</div>
+            {% endfor %}{% endif %}
+          {% endwith %}
+          <p class="eyebrow">Providers</p>
+          <h1>My providers</h1>
+
+          <div class="grid" style="margin-top: 26px">
+            {% for provider in providers %}
+            <div class="card">
+              <span class="pill">{{ provider.target_type|title }}</span>
+              <h3 style="margin-top: 12px">{{ provider.title }}</h3>
+              <p class="muted">
+                {{ provider.phone }}
+                <br />
+                Added: {{ provider.created_at[:10] }}
+              </p>
+              <a href="{{ url_for('bookings.new_booking_form', provider_id=provider.id) }}" class="btn">Book appointment</a>
+              <div class="btn-row">
+                <form method="POST" action="{{ url_for('providers.delete_provider', provider_id=provider.id) }}" style="display: inline;">
+                  <button type="submit" class="btn ghost" onclick="return confirm('Delete this provider?')">Delete</button>
+                </form>
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+
+          <div class="card" style="margin-top: 40px">
+            <h2>Add a service provider</h2>
+            <form method="POST" action="{{ url_for('providers.add_provider') }}">
+              <label for="t">Provider type</label>
+              <select id="t" name="provider_type" required>
+                <option>Doctor</option>
+                <option>Hospital</option>
+                <option>Salon</option>
+                <option>Barber</option>
+                <option>Mechanic</option>
+                <option>Dentist</option>
+                <option>Other</option>
+              </select>
+              <label for="bn">Provider / business name</label>
+              <input id="bn" name="business_name" placeholder="Downtown Barber" required />
+              <label for="bp">Phone number</label>
+              <input id="bp" name="phone" placeholder="+91 XXXXX XXXXX" required />
+              <label for="ba">Address (optional)</label>
+              <input id="ba" name="address" placeholder="12 Market Street" />
+              <label for="bnote">Anything the AI should know about this provider?</label>
+              <textarea id="bnote" name="notes" rows="3" placeholder="Ask for Ravi, closed on Mondays."></textarea>
+              <button class="btn" type="submit">Save provider</button>
+            </form>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <div class="wrap">BookApt.ai — your AI assistant calls, negotiates and books. Static prototype.</div>
+    </footer>
+  </body>
+</html>

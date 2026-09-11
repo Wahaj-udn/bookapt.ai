@@ -1,0 +1,24 @@
+{
+  "booking_id": "f9de23c4-ffb3-41c6-8723-8d91ebbec31d",
+  "state": "escalate_to_human",
+  "call_count": 1,
+  "call_sids": [
+    "CAb75251d2f4ace9eb5a3c222a45d964ff"
+  ],
+  "held_offer_start": null,
+  "held_offer_end": null,
+  "last_outcome": "escalate_to_human",
+  "updated_at": "2026-09-11T08:55:50.403973",
+  "history": [
+    {
+      "event": "call_started",
+      "call_sid": "CAb75251d2f4ace9eb5a3c222a45d964ff",
+      "at": "2026-09-11T08:54:02.282119"
+    },
+    {
+      "event": "resolved",
+      "outcome": "escalate_to_human",
+      "at": "2026-09-11T08:55:50.403973"
+    }
+  ]
+}

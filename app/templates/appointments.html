@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Booking Results — BookApt.ai</title>
+    <meta name="description" content="See your confirmed appointment, call summary and transcript." />
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}" />
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="wrap">
+        <a class="brand" href="{{ url_for('dashboard.index') }}">BookApt<span>.ai</span></a>
+        <nav class="nav" aria-label="Primary">
+          <a href="{{ url_for('dashboard.index') }}">Dashboard</a>
+          <a href="{{ url_for('providers.list_providers') }}">Providers</a>
+          <a href="{{ url_for('bookings.new_booking_form') }}">Book</a>
+        </nav>
+      </div>
+    </header>
+
+    <main>
+      <section>
+        <div class="wrap">
+          {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}{% for category, message in messages %}
+              <div class="flash flash-{{ category }}">{{ message }}</div>
+            {% endfor %}{% endif %}
+          {% endwith %}
+
+          {# ── Booking header ── #}
+          {% set latest = call_history.calls[-1] if call_history.calls else None %}
+          {% if latest and latest.outcome == 'booked' %}
+            <p class="eyebrow tick">✓ Booked</p>
+            <h1>Appointment confirmed!</h1>
+            <p class="lead">Your AI agent successfully booked with <strong>{{ booking.title }}</strong>.</p>
+          {% elif latest and latest.outcome == 'pending_user_approval' %}
+            <p class="eyebrow" style="color: var(--warn, #f59e0b)">⚠ Approval needed</p>
+            <h1>Hold offer — your input needed</h1>
+            <p class="lead">The business proposed a time outside your calendar windows. Review and approve below.</p>
+          {% elif latest %}
+            <p class="eyebrow">{{ latest.outcome|replace('_',' ')|title }}</p>
+            <h1>Booking attempt complete</h1>
+            <p class="lead">AI agent called <strong>{{ booking.title }}</strong>.</p>
+          {% else %}
+            <p class="eyebrow">Booking</p>
+            <h1>{{ booking.title }}</h1>
+            <p class="lead">No call results yet.</p>
+          {% endif %}
+
+          {# ── Latest confirmed slot ── #}
+          {% if latest and latest.confirmed_start %}
+          <div class="card" style="margin-top: 20px">
+            <h3>{{ booking.title }}</h3>
+            <p class="muted" style="margin-bottom: 8px">
+              📅 {{ latest.confirmed_start[:10] }}
+              &nbsp;·&nbsp;
+              🕐 {{ latest.confirmed_start[11:16] }}
+              {% if latest.confirmed_end %} – {{ latest.confirmed_end[11:16] }}{% endif %}
+            </p>
+            <p class="tick" style="margin: 0">✓ Confirmed by AI agent</p>
+            {% if latest.price_mentioned %}
+            <p class="muted" style="margin-top: 6px; font-size: 0.9rem">Price mentioned: {{ latest.price_mentioned }}</p>
+            {% endif %}
+            <div class="btn-row" style="margin-top: 14px">
+              <a href="{{ url_for('bookings.new_booking_form') }}" class="btn ghost">Book another appointment</a>
+              <a href="{{ url_for('dashboard.index') }}" class="btn ghost">Dashboard</a>
+            </div>
+          </div>
+          {% elif not call_history.calls %}
+          <div class="card" style="margin-top: 20px">
+            <p class="muted">No calls have been placed for this booking yet.</p>
+            <div class="btn-row">
+              <a href="{{ url_for('bookings.place_call', booking_id=booking_id) }}" class="btn">Start AI call</a>
+            </div>
+          </div>
+          {% endif %}
+
+          {# ── Hold offer approval ── #}
+          {% if latest and latest.outcome == 'pending_user_approval' and latest.held_offer_start %}
+          <div class="card" style="margin-top: 24px; border-left: 4px solid #f59e0b">
+            <h3>⚠ Business proposed a hold</h3>
+            <p class="muted">
+              Proposed: {{ latest.held_offer_start[:10] }}
+              at {{ latest.held_offer_start[11:16] }}
+              {% if latest.held_offer_end %} – {{ latest.held_offer_end[11:16] }}{% endif %}
+            </p>
+            {% if latest.business_conditions %}
+            <p class="muted" style="font-size:0.9rem">Conditions: {{ latest.business_conditions }}</p>
+            {% endif %}
+            <div class="btn-row">
+              <a href="#" class="btn">Approve &amp; call back</a>
+              <a href="{{ url_for('bookings.place_call', booking_id=booking_id) }}" class="btn ghost">Retry with new times</a>
+            </div>
+          </div>
+          {% endif %}
+
+          {# ── Call history ── #}
+          {% if call_history.calls %}
+          <h2 style="margin-top: 48px">Call history</h2>
+          {% for call in call_history.calls|reverse %}
+          <div class="card" style="margin-top: 16px">
+            <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:8px">
+              <span class="pill {% if call.outcome == 'booked' %}pill-done{% endif %}">
+                {{ call.outcome|replace('_',' ')|title }}
+              </span>
+              <span class="muted" style="font-size:0.85rem">{{ call.call_sid[:20] }}… · {{ call.call_duration_seconds }}s</span>
+            </div>
+
+            {% if call.summary %}
+            <p style="margin-top: 12px">{{ call.summary }}</p>
+            {% endif %}
+
+            {% if call.transcript_text %}
+            <details style="margin-top: 12px">
+              <summary class="muted" style="cursor:pointer; font-size:0.9rem">View transcript</summary>
+              <pre style="margin-top: 10px; white-space: pre-wrap; font-size: 0.82rem; background: #f5f5f7; padding: 12px; border-radius: 8px; overflow-x:auto">{{ call.transcript_text }}</pre>
+            </details>
+            {% endif %}
+
+            <p class="muted" style="font-size:0.8rem; margin-top:8px">Recorded: {{ call.recorded_at[:19]|replace('T',' ') }}</p>
+          </div>
+          {% endfor %}
+          {% endif %}
+
+          {# ── Booking metadata ── #}
+          <details style="margin-top: 40px">
+            <summary class="muted" style="cursor:pointer">Booking details</summary>
+            <div class="card" style="margin-top: 12px">
+              <p class="muted"><strong>Provider:</strong> {{ booking.title }} ({{ booking.target_type|title }})</p>
+              <p class="muted"><strong>Phone:</strong> {{ booking.phone }}</p>
+              <p class="muted"><strong>Max date:</strong> {{ booking.max_date }}</p>
+              <p class="muted"><strong>Duration:</strong> {{ booking.required_duration_min }} minutes</p>
+              {% if booking.special_instructions %}
+              <p class="muted"><strong>Instructions:</strong> {{ booking.special_instructions }}</p>
+              {% endif %}
+              <p class="muted"><strong>Status:</strong> {{ booking.status }}</p>
+            </div>
+          </details>
+
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <div class="wrap">BookApt.ai — your AI assistant calls, negotiates and books.</div>
+    </footer>
+  </body>
+</html>

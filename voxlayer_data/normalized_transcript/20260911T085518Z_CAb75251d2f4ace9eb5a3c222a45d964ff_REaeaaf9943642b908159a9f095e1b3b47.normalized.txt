@@ -1,0 +1,11 @@
+outcome=pending_user_approval
+[AGENT]: Hello, I'm calling to book an appointment with Dr. Vikas Ortho for my client. Do you have any availability soon?
+[USER]: Yeah, I think we do. But what date and time do you want?
+[AGENT]: My client needs an appointment on or before September 12th. And the meeting will take about 45 minutes. Do you have anything available in that time frame?
+[USER]: I'm afraid we don't. I understand.
+[AGENT]: Just to be sure, you don't have any openings at all before September 12th?
+[USER]: Not really. I think we would have one opening on September 13th.
+[AGENT]: Unfortunately, my client needs it done before then. Could you possibly hold that September 13th slot for us tentatively?
+[USER]: That's helpful.
+[AGENT]: Thank you. Let me confirm with my client, and I'll call you right back.
+[USER]: Goodbye.
