@@ -24,6 +24,8 @@ venv/
 env/
 ENV/
 .env/
+app/venv/
+bookapt/venv/
 
 # ── Databases ────────────────────────────────────────────────
 *.db
