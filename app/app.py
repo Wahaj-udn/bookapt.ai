@@ -84,6 +84,22 @@ def create_app() -> Flask:
     except ImportError as e:
         app.logger.warning(f"⚠ Could not register calendar routes: {e}")
 
+    # WhatsApp incoming webhook
+    try:
+        from app.routes.whatsapp import whatsapp_bp
+        app.register_blueprint(whatsapp_bp)
+        app.logger.info("✓ Registered WhatsApp webhook routes at /whatsapp/incoming")
+    except ImportError as e:
+        app.logger.warning(f"⚠ Could not register WhatsApp routes: {e}")
+
+    # Admin: pipeline retry queue
+    try:
+        from app.routes.admin import admin_bp
+        app.register_blueprint(admin_bp)
+        app.logger.info("✓ Registered admin routes at /admin/retry-queue, /admin/retry-pipeline")
+    except ImportError as e:
+        app.logger.warning(f"⚠ Could not register admin routes: {e}")
+
     # TODO: Register additional blueprints:
     #   - routes.alerts (Phase 6) - Hold approval flow
 

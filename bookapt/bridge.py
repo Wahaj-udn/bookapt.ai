@@ -76,36 +76,44 @@ def pcm16_rms(pcm_bytes: bytes) -> int:
 
 
 def build_mission_prompt(booking: BookingRequest) -> str:
-    """Generic negotiation mission prompt, filled from BookingRequest.
-
-    This replaces Carecaller's fixed mission_prompt_healthcare.txt. Keep
-    this generic — no target-type-specific branching beyond what's already
-    in booking.target_type / special_instructions.
-    """
+    """Generic negotiation mission prompt, filled from BookingRequest."""
     slot_lines = "\n".join(
         f"  - {s.start.isoformat()} to {s.end.isoformat()}" for s in booking.fitting_slots
-    ) or "  (no fitting windows provided — treat any proposed slot as needing the tool check anyway)"
+    ) or "  (none — use the tool to check any proposed slot against the deadline)"
+
+    has_slots = bool(booking.fitting_slots)
+    slot_guidance = (
+        "When YOU need to suggest a time, only propose times that fall within "
+        "the Known open calendar windows listed below. Never suggest a time "
+        "outside those windows yourself."
+        if has_slots else
+        "No pre-computed windows are available. When you suggest a time, "
+        "ensure it falls on or before the max date and meets the duration."
+    )
 
     followup_clause = ""
     if booking.is_followup_call and booking.prior_offer_summary:
         followup_clause = f"\n\nIMPORTANT CONTEXT FOR THIS CALL:\n{booking.prior_offer_summary}\n"
 
-    return f"""You are an AI assistant calling on behalf of {booking.user_display_name} to book an
+    return f"""You are an AI assistant calling on behalf of {booking.user_display_name} defualt user name is VIKAS to book an
 appointment with {booking.business_name}, a {booking.target_type or "business"}.
-
-YOUR GOAL:
-Negotiate and confirm one specific appointment date and time that fits your
-client's calendar and deadline. You are polite, efficient, and sound natural
-on the phone — like a real assistant, not a script reader.
 {followup_clause}
-HARD RULE — NEVER DECIDE CALENDAR FIT YOURSELF:
-Whenever the business proposes a specific date and time, you MUST call the
-`check_slot_fits` tool with that proposed start/end time before saying
-anything that commits to accepting or rejecting it. Never reason about
-whether a time "sounds fine" — always call the tool and act only on its
-result. If the tool says the slot fits, accept it immediately and clearly
-restate the confirmed date and time back to the business. If the tool says
-it does not fit, do not accept it.
+YOUR GOAL:
+Confirm one specific appointment date and time. Speak naturally, like a
+real human assistant — NOT like a script reader or a robot.
+
+CONVERSATION PACING — CRITICAL:
+- Your very first line must be ONE brief, natural sentence: greet them,
+  say why you're calling, and STOP. Wait for them to respond before
+  saying anything else. Example: "Hi, I'm calling to book a
+  {booking.target_type or 'appointment'} for my client — do you have
+  any availability this week?"
+- Keep every turn to 1–2 sentences maximum. Ask ONE question at a time.
+- Do NOT front-load the reason, the duration, the date, and the special
+  instructions all in the first sentence. Let the conversation unfold
+  naturally.
+- Pause and listen after each sentence. Do not speak again until the
+  other person has responded.
 
 CLIENT'S CONSTRAINTS (for your own context only — DO NOT read this list
 aloud to the business):
@@ -114,41 +122,49 @@ aloud to the business):
 - Known open calendar windows:
 {slot_lines}
 
-WHEN A PROPOSED SLOT DOES NOT FIT (per the tool's result):
-1. Ask if there is any other time available, and try the tool again on any
-   new proposal.
-2. If, after a reasonable back-and-forth, the business's best offer still
-   does not fit, do the following EXACTLY:
-   a. Ask the business to hold that specific time tentatively for you.
-   b. Say something like: "That's helpful, thank you. Let me confirm with
-      my client and I'll call you right back." Do not say the appointment
-      is confirmed.
-   c. End the call politely.
-3. Do not keep negotiating indefinitely — if the business cannot offer
-   anything and cannot hold a tentative slot either, politely end the call
-   and note that no availability could be found.
+HOW TO HANDLE TIME PROPOSALS:
 
-IF THE BUSINESS CANNOT HOLD A SLOT WITHOUT immediate confirmation:
-Say: "I understand — let me quickly check with my client and I'll call you
-right back with a confirmation." Then end the call politely. Do not commit
-to the slot yourself.
+{slot_guidance}
+
+There are TWO kinds of time proposals — treat them DIFFERENTLY:
+
+1. TIME YOU PROPOSE TO THE BUSINESS:
+   You have already checked that your suggestion fits the calendar.
+   If the business agrees, accept it immediately and confirm it.
+   Do NOT call `check_slot_fits` on a time you yourself suggested.
+   NEVER reverse a time you proposed — if you asked for 3 PM and
+   they said yes, the answer is yes.
+
+2. TIME THE BUSINESS PROPOSES TO YOU:
+   You MUST call `check_slot_fits` before accepting or rejecting it.
+   Never say "yes" or "no" until the tool has returned a result.
+   Act only on the tool's answer — not your own judgment.
+
+WHEN `check_slot_fits` RETURNS fits=False (business-proposed time):
+1. Politely say that time doesn't quite work for your client and ask
+   if there is any other availability.
+2. Try the tool again on any new proposal from the business.
+3. After a reasonable back-and-forth with no match, ask the business
+   to hold the best offer tentatively: say "Let me quickly check with
+   my client and I'll call you right back." Then end the call politely.
+4. Do not negotiate indefinitely. If nothing fits and they cannot hold
+   a slot, politely end the call.
+
+IF THE BUSINESS CANNOT HOLD WITHOUT IMMEDIATE CONFIRMATION:
+Say: "I understand — I'll check with my client and call you right
+back." Then end the call. Do not commit to any slot yourself.
 
 SPECIAL INSTRUCTIONS FROM THE CLIENT TO RELAY TO THE BUSINESS:
-{booking.special_instructions or "(none)"}
+{booking.special_instructions or "(none — just book the appointment)"}
 
-GUARDRAILS — NEVER DO THE FOLLOWING WITHOUT EXPLICIT CLIENT APPROVAL:
-- Never agree to or quote a specific price as final/accepted on the
-  client's behalf. You may note a price if the business mentions one.
-- Never share or confirm sensitive personal, medical, financial, or
-  insurance details beyond what's explicitly listed in the special
-  instructions above.
-- Never agree to a cancellation policy or any binding terms.
-- If the business asks for information you don't have, say you'll have
-  your client follow up directly.
-
-Keep your turns short and natural. Ask one thing at a time. If the person
-who answers indicates this is the wrong business or wrong number, apologize
-and end the call politely.
+GUARDRAILS:
+- Never quote or agree to a price as final on the client's behalf.
+- Never share sensitive personal, medical, or financial details beyond
+  what is listed in the special instructions above.
+- Never agree to cancellation policies or binding terms.
+- If the business asks for information you don't have, say your client
+  will follow up directly.
+- If this is the wrong number or business, apologise and hang up.
 """
 
 
@@ -243,6 +259,7 @@ class BridgeService:
             "response_modalities": ["AUDIO"],
             "system_instruction": system_instruction,
             "input_audio_transcription": {},
+            "output_audio_transcription": {},
             "tools": [tool_declaration],
             "realtime_input_config": {
                 "automatic_activity_detection": {
@@ -257,14 +274,33 @@ class BridgeService:
             }
 
         async with self._client.aio.live.connect(model=self._model, config=config) as session:
-            kickoff = (
-                f"Call context: you are calling {booking.business_name}. "
-                f"Begin the call now by greeting them and stating you'd like to "
-                f"book a {booking.target_type or 'appointment'}."
-            )
             if booking.is_followup_call:
-                kickoff += " This is a followup call — mention that you spoke with them before, per your context."
-            await session.send_realtime_input(text=kickoff)
+                kickoff = (
+                    f"The call has connected. You are calling {booking.business_name} again "
+                    f"as a followup. Open with ONE brief sentence reminding them you spoke "
+                    f"before and that your client has confirmed the previously discussed time. "
+                    f"Then STOP and wait for their response."
+                )
+            else:
+                kickoff = (
+                    f"The call has just connected. You are speaking with {booking.business_name}. "
+                    f"Open with ONE brief, natural sentence — greet them and say you're calling "
+                    f"to book a {booking.target_type or 'appointment'} for your client. "
+                    f"Do NOT mention duration, deadline, or any other details yet. "
+                    f"Say your one sentence, then STOP and wait for their reply."
+                )
+
+            # Use send_client_content (not send_realtime_input) to inject a
+            # turn-based message that triggers the model to speak immediately.
+            # send_realtime_input is for streaming live audio, not seeding turns.
+            from google.genai import types as genai_types
+            await session.send_client_content(
+                turns=genai_types.Content(
+                    role="user",
+                    parts=[genai_types.Part(text=kickoff)],
+                ),
+                turn_complete=True,
+            )
 
             twilio_to_gemini = asyncio.create_task(
                 self._forward_twilio_to_gemini(websocket, session, state)
@@ -294,28 +330,39 @@ class BridgeService:
         LOGGER.info("Twilio stream disconnected call_sid=%s", state.call_sid or "unknown")
 
     async def _forward_twilio_to_gemini(self, websocket, session, state: BridgeState) -> None:
-        async for raw in websocket:
-            message = json.loads(raw)
-            event = message.get("event")
+        try:
+            async for raw in websocket:
+                message = json.loads(raw)
+                event = message.get("event")
 
-            if event == "media":
-                media = message.get("media", {})
-                if media.get("track", "inbound") != "inbound":
+                if event == "media":
+                    media = message.get("media", {})
+                    if media.get("track", "inbound") != "inbound":
+                        continue
+                    payload_b64 = media.get("payload")
+                    if not payload_b64:
+                        continue
+                    pcm16k = twilio_payload_to_pcm16_16k(payload_b64)
+                    if state.model_is_speaking and pcm16_rms(pcm16k) >= 700:
+                        await self._send_twilio_clear(websocket, state.stream_sid)
+                        state.model_is_speaking = False
+                    await session.send_realtime_input(
+                        audio=types.Blob(data=pcm16k, mime_type="audio/pcm;rate=16000")
+                    )
                     continue
-                payload_b64 = media.get("payload")
-                if not payload_b64:
-                    continue
-                pcm16k = twilio_payload_to_pcm16_16k(payload_b64)
-                if state.model_is_speaking and pcm16_rms(pcm16k) >= 700:
-                    await self._send_twilio_clear(websocket, state.stream_sid)
-                    state.model_is_speaking = False
-                await session.send_realtime_input(
-                    audio=types.Blob(data=pcm16k, mime_type="audio/pcm;rate=16000")
-                )
-                continue
 
-            if event == "stop":
-                break
+                if event == "stop":
+                    break
+        except websockets.exceptions.ConnectionClosedError:
+            # Caller hung up without sending a WebSocket close frame (abrupt hangup).
+            # Treat this as a normal call end — don't propagate the exception.
+            LOGGER.info(
+                "Twilio WebSocket closed abruptly (no close frame) for call_sid=%s — treating as hangup",
+                state.call_sid or "unknown",
+            )
+        except websockets.exceptions.ConnectionClosedOK:
+            # Clean close — also fine, just return.
+            pass
 
     async def _forward_gemini_to_twilio(self, websocket, session, state: BridgeState, matcher: SlotMatcher) -> None:
         gemini_buffer = ""
@@ -328,7 +375,11 @@ class BridgeService:
                 responses = []
                 for fc in tool_call.function_calls:
                     if fc.name == "check_slot_fits":
-                        result = matcher.resolve_tool_call(dict(fc.args or {}))
+                        try:
+                            result = matcher.resolve_tool_call(dict(fc.args or {}))
+                        except Exception as exc:
+                            LOGGER.error("check_slot_fits raised unexpectedly: %s", exc)
+                            result = {"fits": False, "reason": f"internal_error: {exc}"}
                         LOGGER.info("check_slot_fits(%s) -> %s", fc.args, result)
                         responses.append(
                             types.FunctionResponse(id=fc.id, name=fc.name, response=result)

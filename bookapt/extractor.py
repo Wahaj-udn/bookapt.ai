@@ -115,11 +115,14 @@ def extract(normalized_path: Path) -> dict[str, Any]:
     Returns a dict matching the fields consumed by result_store.py /
     models.CallResult (minus booking_id/call_sid/recording metadata).
     """
+    from .gemini_retry import call_with_retry
+
     normalized_text = normalized_path.read_text(encoding="utf-8", errors="ignore")
     outcome, body = _read_outcome_and_body(normalized_text)
 
     api_key = _get_api_key()
     model_name = Config.get(Config.EXTRACTOR_MODEL, "gemini-2.5-flash")
+    fallback_model = Config.get("VOXLAYER_EXTRACTOR_FALLBACK_MODEL", "").strip()
 
     default_result: dict[str, Any] = {
         "outcome": outcome,
@@ -138,10 +141,22 @@ def extract(normalized_path: Path) -> dict[str, Any]:
 
     try:
         client = genai.Client(api_key=api_key)
-        response = client.models.generate_content(
-            model=model_name, contents=build_extraction_prompt(body, outcome)
+        prompt = build_extraction_prompt(body, outcome)
+
+        def _call_primary() -> str:
+            resp = client.models.generate_content(model=model_name, contents=prompt)
+            return resp.text or ""
+
+        def _call_fallback() -> str:
+            resp = client.models.generate_content(model=fallback_model, contents=prompt)
+            return resp.text or ""
+
+        raw_text = call_with_retry(
+            _call_primary,
+            label=f"extractor/{model_name}",
+            fallback_fn=_call_fallback if fallback_model and fallback_model != model_name else None,
         )
-        parsed = _safe_json_parse(response.text or "")
+        parsed = _safe_json_parse(raw_text)
     except Exception:
         parsed = {}
 
@@ -160,3 +175,4 @@ def extract(normalized_path: Path) -> dict[str, Any]:
         }
     )
     return default_result
+

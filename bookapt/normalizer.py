@@ -191,6 +191,8 @@ def merge_consecutive_speaker_tags(text: str) -> str:
 
 
 def normalize_transcript(input_file: Path, output_file: Path, model: str) -> Path:
+    from .gemini_retry import call_with_retry
+
     api_key = _get_api_key()
     if not api_key:
         raise RuntimeError(
@@ -201,14 +203,32 @@ def normalize_transcript(input_file: Path, output_file: Path, model: str) -> Pat
     prompt = build_prompt(raw_text)
 
     client = genai.Client(api_key=api_key)
-    response = client.models.generate_content(model=model, contents=prompt)
-    output_text = sanitize_model_output(response.text or "")
+
+    # Layer 3: fallback model if primary keeps 503-ing
+    fallback_model = Config.get("VOXLAYER_NORMALIZER_FALLBACK_MODEL", "").strip()
+
+    def _call_primary() -> str:
+        resp = client.models.generate_content(model=model, contents=prompt)
+        return resp.text or ""
+
+    def _call_fallback() -> str:
+        resp = client.models.generate_content(model=fallback_model, contents=prompt)
+        return resp.text or ""
+
+    raw_output = call_with_retry(
+        _call_primary,
+        label=f"normalizer/{model}",
+        fallback_fn=_call_fallback if fallback_model and fallback_model != model else None,
+    )
+
+    output_text = sanitize_model_output(raw_output)
     output_text = ensure_outcome_first_line(output_text)
     output_text = merge_consecutive_speaker_tags(output_text)
 
     output_file.parent.mkdir(parents=True, exist_ok=True)
     output_file.write_text(output_text + "\n", encoding="utf-8")
     return output_file
+
 
 
 def normalize(input_file: Path) -> Path:

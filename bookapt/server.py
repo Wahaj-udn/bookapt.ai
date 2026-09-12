@@ -92,8 +92,41 @@ def _run_post_call_pipeline(app: Flask, recording_file: Path, booking_id: str, c
                 extraction=extraction,
             )
             app.logger.info("voxlayer: result recorded for booking_id=%s", booking_id)
+
+            # ── WhatsApp notification ────────────────────────────────────────
+            try:
+                from . import whatsapp_notifier
+                business_name = "the provider"
+                try:
+                    from app import db as app_db
+                    row = app_db.get_booking(booking_id)
+                    if row:
+                        business_name = row.get("title", business_name)
+                except Exception:
+                    pass
+                whatsapp_notifier.send_result_notification(
+                    booking_id=booking_id,
+                    outcome=extraction.get("outcome", ""),
+                    business_name=business_name,
+                    confirmed_start=extraction.get("confirmed_start_iso"),
+                    confirmed_end=extraction.get("confirmed_end_iso"),
+                    held_offer_start=extraction.get("held_offer_start_iso"),
+                    held_offer_end=extraction.get("held_offer_end_iso"),
+                    summary=extraction.get("summary", ""),
+                )
+            except Exception as wa_exc:
+                app.logger.warning("voxlayer: WhatsApp notification error: %s", wa_exc)
+
         except Exception as exc:  # pragma: no cover - defensive background job
             app.logger.error("voxlayer: post-call pipeline failed for call_sid=%s: %s", call_sid, exc)
+            # Layer 2: persist to retry queue so the admin endpoint can re-run it
+            try:
+                from .pipeline_retry_queue import enqueue_failure
+                enqueue_failure(booking_id, call_sid, recording_file, str(exc))
+                app.logger.info("voxlayer: call_sid=%s added to retry queue", call_sid)
+            except Exception as qe:
+                app.logger.error("voxlayer: could not enqueue retry for call_sid=%s: %s", call_sid, qe)
+
 
     threading.Thread(target=_job, daemon=True, name=f"voxlayer-postcall-{call_sid}").start()
 

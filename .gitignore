@@ -1,0 +1,82 @@
+# ============================================================
+# .gitignore — MRCET / BookAppt.ai Hackathon Project
+# ============================================================
+
+# ── Secrets & Environment Variables ─────────────────────────
+# NEVER commit real .env files — use .env.example instead
+.env
+.env.local
+.env.*.local
+bookapt_data/google_token.json
+app/bookapt_data/google_token.json
+
+# ── Python ───────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyo
+*.pyd
+.Python
+
+# ── Virtual Environments ─────────────────────────────────────
+venv/
+.venv/
+env/
+ENV/
+.env/
+
+# ── Databases ────────────────────────────────────────────────
+*.db
+*.sqlite
+*.sqlite3
+
+# ── Runtime Data Directories ─────────────────────────────────
+# These are generated at runtime and should not be committed
+voxlayer_data/
+bookapt_data/
+app/voxlayer_data/
+app/bookapt_data/
+
+# But keep directory placeholders so structure is preserved in repo
+!voxlayer_data/**/.gitkeep
+!bookapt_data/.gitkeep
+
+# ── Scratch / Temporary Files ────────────────────────────────
+scratch/
+*.tmp
+*.bak
+*.swp
+*~
+
+# ── Audio / Media Recordings ─────────────────────────────────
+*.mp3
+*.wav
+*.ogg
+*.flac
+*.m4a
+
+# ── Logs ─────────────────────────────────────────────────────
+*.log
+logs/
+
+# ── IDE / Editor ─────────────────────────────────────────────
+.vscode/
+.idea/
+*.code-workspace
+.DS_Store
+Thumbs.db
+
+# ── Build / Dist ─────────────────────────────────────────────
+dist/
+build/
+*.egg-info/
+.eggs/
+
+# ── Pytest ───────────────────────────────────────────────────
+.pytest_cache/
+.coverage
+htmlcov/
+
+# ── Junk Files ───────────────────────────────────────────────
+"New Text Document.txt"
+New Text Document.txt

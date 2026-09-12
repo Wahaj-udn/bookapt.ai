@@ -1,0 +1,41 @@
+# ============================================================
+# .gitattributes — Normalize line endings across platforms
+# ============================================================
+
+# Default: normalize to LF on checkin, use native on checkout
+* text=auto
+
+# Python source files
+*.py text eol=lf
+
+# Web files
+*.html text eol=lf
+*.css  text eol=lf
+*.js   text eol=lf
+*.ts   text eol=lf
+*.json text eol=lf
+
+# Markdown & docs
+*.md   text eol=lf
+*.txt  text eol=lf
+
+# Config / env templates
+.env.example text eol=lf
+.env.example.txt text eol=lf
+*.yml  text eol=lf
+*.yaml text eol=lf
+*.toml text eol=lf
+
+# Shell scripts
+*.sh   text eol=lf
+
+# Binary files — no line-ending conversion
+*.db   binary
+*.mp3  binary
+*.wav  binary
+*.pyc  binary
+*.png  binary
+*.jpg  binary
+*.jpeg binary
+*.gif  binary
+*.ico  binary

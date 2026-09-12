@@ -117,4 +117,15 @@ class SlotMatcher:
             end = dt.datetime.fromisoformat(args["proposed_end_iso"])
         except (KeyError, ValueError) as exc:
             return {"fits": False, "reason": f"could_not_parse_times: {exc}"}
-        return self.check(start, end).to_dict()
+
+        # Normalise: strip tzinfo so timezone-aware ISO strings from Gemini
+        # (e.g. "...Z" or "+00:00") can be compared with naive window datetimes.
+        if start.tzinfo is not None:
+            start = start.replace(tzinfo=None)
+        if end.tzinfo is not None:
+            end = end.replace(tzinfo=None)
+
+        try:
+            return self.check(start, end).to_dict()
+        except Exception as exc:
+            return {"fits": False, "reason": f"internal_check_error: {exc}"}
