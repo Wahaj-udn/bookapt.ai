@@ -1,131 +1,167 @@
 #!/usr/bin/env python3
-"""Deterministic slot-fit checking, exposed to the live model as a tool call.
+"""Deterministic slot-fit checking — exposed to the live Gemini agent as a tool call.
 
-This exists specifically so the accept/reject decision during a live
-negotiation call is never left to LLM judgment. The calendar layer
-precomputes a list of windows that already satisfy the required duration
-(`BookingRequest.fitting_slots`); this module just does plain interval
-containment checks against that in-memory list, plus a max-date ceiling
-check. No network calls, no Google Calendar access here.
+How it works
+------------
+1. At booking creation, Google Calendar is queried and ALL busy blocks from
+   preferred_date → max_date are saved to:
+       <VOXLAYER_DATA_DIR>/busy_cache/<booking_id>.json
 
-Usage in the bridge:
-    matcher = SlotMatcher(booking.fitting_slots, booking.max_date)
-    # register `matcher.tool_schema()` as a Gemini Live function declaration
-    # when the model calls it, resolve with `matcher.check(proposed_start, proposed_end)`
+2. During the live call, when the business proposes a time, Gemini calls
+   `check_slot_fits(proposed_start_iso, proposed_end_iso)`.
+
+3. This module loads the JSON file and does a simple overlap check:
+       proposed_start < busy_end  AND  proposed_end > busy_start
+   → fits=False if any busy block overlaps.
+   → fits=True  if no conflicts and the date is within max_date.
+
+No Google Calendar API calls happen during the call.
+No "free window" computation. No gap arithmetic. Just: is this time busy?
 """
 
 from __future__ import annotations
 
 import datetime as dt
-from dataclasses import dataclass
+import logging
 from typing import Any, Optional
 
-from .models import SlotWindow
-
-
-@dataclass
-class SlotCheckResult:
-    fits: bool
-    reason: str
-    matched_window: Optional[SlotWindow] = None
-
-    def to_dict(self) -> dict[str, Any]:
-        return {
-            "fits": self.fits,
-            "reason": self.reason,
-            "matched_window": self.matched_window.to_dict() if self.matched_window else None,
-        }
+LOGGER = logging.getLogger("bookapt.slot_matcher")
 
 
 class SlotMatcher:
-    def __init__(self, fitting_slots: list[SlotWindow], max_date: dt.date):
-        # Sorted for cheap sequential scanning; lists here are expected to be
-        # small (a handful of calendar windows), so no interval-tree needed.
-        self._slots = sorted(fitting_slots, key=lambda s: s.start)
+    def __init__(
+        self,
+        fitting_slots,          # kept for API compatibility (not used for checking)
+        max_date: dt.date,
+        booking_id: Optional[str] = None,
+    ):
         self._max_date = max_date
+        self._booking_id = booking_id
 
-    def check(self, proposed_start: dt.datetime, proposed_end: dt.datetime) -> SlotCheckResult:
-        """Return whether [proposed_start, proposed_end) is auto-acceptable.
+    # ------------------------------------------------------------------
+    # Core check
+    # ------------------------------------------------------------------
 
-        Rule (per BookAppt.ai negotiation spec):
-          - proposed_end must be on/before max_date, AND
-          - the full proposed window must fall within one of the
-            precomputed fitting_slots (business offering a time that's
-            only partially free doesn't count).
-        Price is never part of this check by design.
+    def check(
+        self,
+        proposed_start: dt.datetime,
+        proposed_end: dt.datetime,
+    ) -> dict[str, Any]:
+        """Return a JSON-able result dict for a proposed appointment slot.
+
+        Checks (in order):
+          1. Basic sanity (start before end)
+          2. Hard deadline (proposed end must be on/before max_date)
+          3. Busy-block overlap (load busy_cache JSON, simple overlap test)
+
+        Returns a dict with keys: fits (bool), reason (str), conflict (dict|None)
         """
+        # ── 1. Sanity ────────────────────────────────────────────────────────
         if proposed_start >= proposed_end:
-            return SlotCheckResult(fits=False, reason="invalid_time_range: start is not before end")
+            return {
+                "fits": False,
+                "reason": "invalid_range: start must be before end",
+                "conflict": None,
+            }
 
+        # ── 2. Max-date ceiling ───────────────────────────────────────────────
         if proposed_end.date() > self._max_date:
-            return SlotCheckResult(
-                fits=False,
-                reason=f"outside_max_date: proposed end {proposed_end.date()} is after max_date {self._max_date}",
-            )
+            return {
+                "fits": False,
+                "reason": f"exceeds_deadline: latest allowed date is {self._max_date}",
+                "conflict": None,
+            }
 
-        for window in self._slots:
-            if proposed_start >= window.start and proposed_end <= window.end:
-                return SlotCheckResult(fits=True, reason="fits_within_calendar_window", matched_window=window)
+        # ── 3. Busy-block check ───────────────────────────────────────────────
+        if self._booking_id:
+            try:
+                from . import busy_store
+                if busy_store.exists(self._booking_id):
+                    overlaps, block = busy_store.has_overlap(
+                        self._booking_id, proposed_start, proposed_end
+                    )
+                    if overlaps:
+                        return {
+                            "fits": False,
+                            "reason": (
+                                f"conflicts_with_existing_event: "
+                                f"{block.get('start','?')} → {block.get('end','?')}"
+                            ),
+                            "conflict": block,
+                        }
+                    # Cache exists and slot is free
+                    return {
+                        "fits": True,
+                        "reason": "slot_is_free",
+                        "conflict": None,
+                    }
+            except Exception as exc:
+                LOGGER.warning(
+                    "busy_store check failed for booking %s: %s — accepting slot",
+                    self._booking_id, exc,
+                )
 
-        return SlotCheckResult(
-            fits=False,
-            reason="no_calendar_window_contains_this_slot",
-        )
+        # ── No cache (non-calendar booking) → accept within deadline ─────────
+        return {
+            "fits": True,
+            "reason": "no_calendar_connected_slot_accepted",
+            "conflict": None,
+        }
 
-    def has_any_future_room(self) -> bool:
-        """Cheap sanity check: are there any slots left at all before giving up."""
-        return len(self._slots) > 0
+    # ------------------------------------------------------------------
+    # Tool interface (called from bridge.py)
+    # ------------------------------------------------------------------
+
+    def resolve_tool_call(self, args: dict[str, Any]) -> dict[str, Any]:
+        """Parse ISO datetime strings from Gemini and return the check result."""
+        try:
+            start = dt.datetime.fromisoformat(args["proposed_start_iso"])
+            end   = dt.datetime.fromisoformat(args["proposed_end_iso"])
+        except (KeyError, ValueError) as exc:
+            return {"fits": False, "reason": f"parse_error: {exc}", "conflict": None}
+
+        # Gemini sometimes sends UTC-aware strings (e.g. "...Z").
+        # Busy-store values are naive LOCAL datetimes, so convert first.
+        if start.tzinfo is not None:
+            start = start.astimezone().replace(tzinfo=None)
+        if end.tzinfo is not None:
+            end = end.astimezone().replace(tzinfo=None)
+
+        try:
+            return self.check(start, end)
+        except Exception as exc:
+            return {"fits": False, "reason": f"internal_error: {exc}", "conflict": None}
 
     @staticmethod
     def tool_schema() -> dict[str, Any]:
-        """Gemini Live function-declaration schema for this tool.
-
-        Wire this into the `tools` config of the Live session alongside
-        `response_modalities`, the same place gemini_bridge.py sets
-        `system_instruction` / `speech_config`.
-        """
+        """Gemini Live function-declaration schema for check_slot_fits."""
         return {
             "name": "check_slot_fits",
             "description": (
-                "Deterministically check whether a proposed appointment time "
-                "is acceptable, given the client's calendar availability and "
-                "maximum acceptable date. Always call this before verbally "
-                "accepting or rejecting any time the business proposes. Do "
-                "not reason about calendar fit yourself — always defer to "
-                "this tool's result."
+                "Check whether a proposed appointment date and time is free on "
+                "the client's calendar and within their deadline. "
+                "Call this EVERY TIME the business proposes a specific time before "
+                "accepting or rejecting it. Never decide availability yourself — "
+                "always call this tool and follow its result."
             ),
             "parameters": {
                 "type": "object",
                 "properties": {
                     "proposed_start_iso": {
                         "type": "string",
-                        "description": "ISO 8601 datetime of the proposed appointment start.",
+                        "description": (
+                            "ISO 8601 datetime of the proposed appointment start "
+                            "(e.g. '2026-10-31T10:00:00')."
+                        ),
                     },
                     "proposed_end_iso": {
                         "type": "string",
-                        "description": "ISO 8601 datetime of the proposed appointment end.",
+                        "description": (
+                            "ISO 8601 datetime of the proposed appointment end "
+                            "(e.g. '2026-10-31T10:45:00')."
+                        ),
                     },
                 },
                 "required": ["proposed_start_iso", "proposed_end_iso"],
             },
         }
-
-    def resolve_tool_call(self, args: dict[str, Any]) -> dict[str, Any]:
-        """Parse tool-call args from the live model and return a JSON-able result."""
-        try:
-            start = dt.datetime.fromisoformat(args["proposed_start_iso"])
-            end = dt.datetime.fromisoformat(args["proposed_end_iso"])
-        except (KeyError, ValueError) as exc:
-            return {"fits": False, "reason": f"could_not_parse_times: {exc}"}
-
-        # Normalise: strip tzinfo so timezone-aware ISO strings from Gemini
-        # (e.g. "...Z" or "+00:00") can be compared with naive window datetimes.
-        if start.tzinfo is not None:
-            start = start.replace(tzinfo=None)
-        if end.tzinfo is not None:
-            end = end.replace(tzinfo=None)
-
-        try:
-            return self.check(start, end).to_dict()
-        except Exception as exc:
-            return {"fits": False, "reason": f"internal_check_error: {exc}"}

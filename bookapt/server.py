@@ -117,6 +117,21 @@ def _run_post_call_pipeline(app: Flask, recording_file: Path, booking_id: str, c
             except Exception as wa_exc:
                 app.logger.warning("voxlayer: WhatsApp notification error: %s", wa_exc)
 
+            # ── Google Calendar write-back ──────────────────────────────────
+            try:
+                from app import calendar_reader as app_calendar
+                from app import db as app_db
+                booking_row = None
+                try:
+                    booking_row = app_db.get_booking(booking_id)
+                except Exception:
+                    booking_row = None
+                event_link = app_calendar.maybe_add_booked_event(booking_row, extraction)
+                if event_link:
+                    app.logger.info("voxlayer: calendar event created -> %s", event_link)
+            except Exception as cal_exc:
+                app.logger.warning("voxlayer: Google Calendar write-back error: %s", cal_exc)
+
         except Exception as exc:  # pragma: no cover - defensive background job
             app.logger.error("voxlayer: post-call pipeline failed for call_sid=%s: %s", call_sid, exc)
             # Layer 2: persist to retry queue so the admin endpoint can re-run it

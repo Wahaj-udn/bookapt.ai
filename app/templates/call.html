@@ -6,9 +6,6 @@
     <title>{% if live %}Live AI Call{% else %}Start AI Call{% endif %} — BookApt.ai</title>
     <meta name="description" content="Watch your AI agent call the provider, negotiate a time and confirm the appointment." />
     <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}" />
-    {% if live %}
-    <meta http-equiv="refresh" content="30" />
-    {% endif %}
   </head>
   <body>
     <header class="site-header">
@@ -32,7 +29,7 @@
           {% endwith %}
 
           {% if live %}
-          <p class="eyebrow">● In progress</p>
+          <p class="eyebrow" id="call-status-badge">● In progress</p>
           <h1>AI agent is calling…</h1>
           <p class="lead">{{ booking.title }} &nbsp;·&nbsp; {{ booking.phone }}</p>
 
@@ -43,14 +40,57 @@
               <i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i>
               <i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i>
             </div>
-            <p class="muted" style="margin-top: 16px; font-size: 0.9rem">
-              The AI agent is negotiating on your behalf. This page will auto-refresh every 30 seconds.
+            <p class="muted" id="call-status-msg" style="margin-top: 16px; font-size: 0.9rem">
+              The AI agent is negotiating on your behalf. This page checks for updates automatically.
             </p>
             <div class="btn-row" style="margin-top: 12px">
-              <a href="{{ url_for('bookings.view_booking', booking_id=booking_id) }}" class="btn">View results</a>
+              <a href="{{ url_for('bookings.view_booking', booking_id=booking_id) }}" class="btn" id="view-results-btn">View results</a>
               <a href="{{ url_for('dashboard.index') }}" class="btn ghost">Back to dashboard</a>
             </div>
           </div>
+
+          <script>
+            (function () {
+              var bookingId = {{ booking_id | tojson }};
+              var resultsUrl = {{ url_for('bookings.view_booking', booking_id=booking_id) | tojson }};
+              var statusUrl = "/bookings/" + bookingId + "/status";
+              var pollInterval = 5000; // 5 seconds
+              var maxWaitMs = 15 * 60 * 1000; // give up after 15 min
+              var startTime = Date.now();
+
+              function poll() {
+                if (Date.now() - startTime > maxWaitMs) {
+                  // Stop polling, just show the button
+                  document.getElementById("call-status-msg").textContent =
+                    "The call is taking longer than expected. Click 'View results' when you're ready.";
+                  return;
+                }
+
+                fetch(statusUrl)
+                  .then(function (r) { return r.json(); })
+                  .then(function (data) {
+                    if (data.done) {
+                      document.getElementById("call-status-badge").textContent = "✓ Call complete";
+                      document.getElementById("call-status-msg").textContent =
+                        "Call finished! Loading your results…";
+                      // Small delay so the user can see the status change
+                      setTimeout(function () {
+                        window.location.href = resultsUrl;
+                      }, 1200);
+                    } else {
+                      setTimeout(poll, pollInterval);
+                    }
+                  })
+                  .catch(function () {
+                    // Network error — retry
+                    setTimeout(poll, pollInterval);
+                  });
+              }
+
+              // Start polling after a short initial delay
+              setTimeout(poll, 3000);
+            })();
+          </script>
 
           {% else %}
           <p class="eyebrow">Ready to call</p>
@@ -79,7 +119,7 @@
             <ul class="plain">
               <li>🤖 The AI agent will call <strong>{{ booking.phone }}</strong></li>
               <li>💬 It will negotiate a time that fits your calendar</li>
-              <li>✅ Once confirmed, results will appear on the results page</li>
+              <li>✅ Once confirmed, results will appear on the results page automatically</li>
             </ul>
           </div>
           {% endif %}

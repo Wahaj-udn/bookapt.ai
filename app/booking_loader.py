@@ -49,6 +49,15 @@ def booking_loader(booking_id: str) -> BookingRequest:
     # Parse max_date (stored as ISO string)
     max_date = dt.date.fromisoformat(row["max_date"])
 
+    # Parse optional preferred/secondary slot datetimes (stored as ISO strings)
+    def _parse_optional_dt(val: Optional[str]) -> Optional[dt.datetime]:
+        if not val:
+            return None
+        try:
+            return dt.datetime.fromisoformat(val)
+        except (ValueError, TypeError):
+            return None
+
     # Reconstruct the BookingRequest
     # Note: is_followup_call and prior_offer_summary are managed by
     # negotiation_state.py, not stored in the DB. The caller (run_bridge.py
@@ -66,6 +75,8 @@ def booking_loader(booking_id: str) -> BookingRequest:
         call_from_number="",  # Uses default Twilio number from config
         is_followup_call=False,  # Caller overrides if needed
         prior_offer_summary="",  # Caller overrides if needed
+        preferred_slot_start=_parse_optional_dt(row.get("preferred_slot_start")),
+        secondary_slot_start=_parse_optional_dt(row.get("secondary_slot_start")),
     )
 
 

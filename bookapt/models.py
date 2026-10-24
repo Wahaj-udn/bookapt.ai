@@ -92,11 +92,17 @@ class BookingRequest:
     call_from_number: str = ""  # optional override of default Twilio number
     is_followup_call: bool = False  # True for the "I confirmed it" callback
     prior_offer_summary: str = ""  # filled by negotiation_state when resuming
+    preferred_slot_start: Optional[dt.datetime] = None   # user's first-choice time
+    secondary_slot_start: Optional[dt.datetime] = None  # user's fallback time
 
     def to_json(self) -> str:
         payload = dataclasses.asdict(self)
         payload["max_date"] = self.max_date.isoformat()
         payload["fitting_slots"] = [s.to_dict() for s in self.fitting_slots]
+        # Serialize optional datetimes
+        for key in ("preferred_slot_start", "secondary_slot_start"):
+            val = getattr(self, key)
+            payload[key] = val.isoformat() if val else None
         return json.dumps(payload, indent=2)
 
     @classmethod
@@ -104,6 +110,10 @@ class BookingRequest:
         data = json.loads(raw)
         data["max_date"] = dt.date.fromisoformat(data["max_date"])
         data["fitting_slots"] = [SlotWindow.from_dict(s) for s in data.get("fitting_slots", [])]
+        # Deserialize optional datetimes
+        for key in ("preferred_slot_start", "secondary_slot_start"):
+            val = data.get(key)
+            data[key] = dt.datetime.fromisoformat(val) if val else None
         return cls(**data)
 
 

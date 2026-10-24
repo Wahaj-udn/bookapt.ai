@@ -75,8 +75,11 @@ def pcm16_rms(pcm_bytes: bytes) -> int:
     return int(audioop.rms(pcm_bytes, 2))
 
 
+_MISSION_PROMPT_PATH = Path(__file__).with_name("mission_prompt.md")
+
+
 def build_mission_prompt(booking: BookingRequest) -> str:
-    """Generic negotiation mission prompt, filled from BookingRequest."""
+    """Load the negotiation mission prompt from mission_prompt.md and fill it."""
     slot_lines = "\n".join(
         f"  - {s.start.isoformat()} to {s.end.isoformat()}" for s in booking.fitting_slots
     ) or "  (none — use the tool to check any proposed slot against the deadline)"
@@ -85,87 +88,48 @@ def build_mission_prompt(booking: BookingRequest) -> str:
     slot_guidance = (
         "When YOU need to suggest a time, only propose times that fall within "
         "the Known open calendar windows listed below. Never suggest a time "
-        "outside those windows yourself."
+        "outside those windows yourself. Still call `check_slot_fits` on that "
+        "time and wait for fits=True before you tell the business it is confirmed."
         if has_slots else
         "No pre-computed windows are available. When you suggest a time, "
-        "ensure it falls on or before the max date and meets the duration."
+        "ensure it falls on or before the max date and meets the duration. "
+        "Call `check_slot_fits` and wait for fits=True before confirming it out loud."
     )
 
     followup_clause = ""
     if booking.is_followup_call and booking.prior_offer_summary:
         followup_clause = f"\n\nIMPORTANT CONTEXT FOR THIS CALL:\n{booking.prior_offer_summary}\n"
 
-    return f"""You are an AI assistant calling on behalf of {booking.user_display_name} defualt user name is VIKAS to book an
-appointment with {booking.business_name}, a {booking.target_type or "business"}.
-{followup_clause}
-YOUR GOAL:
-Confirm one specific appointment date and time. Speak naturally, like a
-real human assistant — NOT like a script reader or a robot.
+    # Build human-readable preferred/secondary slot strings for the prompt.
+    # These tell the agent the exact date and time the user requested so it
+    # opens negotiation from the correct day, not from today.
+    def _fmt_slot(dt_val) -> str:
+        if dt_val is None:
+            return "(not specified)"
+        # e.g. "Friday, 25 Oct 2026 at 10:45 AM"
+        return dt_val.strftime("%A, %d %b %Y at %I:%M %p").replace(" 0", " ")
 
-CONVERSATION PACING — CRITICAL:
-- Your very first line must be ONE brief, natural sentence: greet them,
-  say why you're calling, and STOP. Wait for them to respond before
-  saying anything else. Example: "Hi, I'm calling to book a
-  {booking.target_type or 'appointment'} for my client — do you have
-  any availability this week?"
-- Keep every turn to 1–2 sentences maximum. Ask ONE question at a time.
-- Do NOT front-load the reason, the duration, the date, and the special
-  instructions all in the first sentence. Let the conversation unfold
-  naturally.
-- Pause and listen after each sentence. Do not speak again until the
-  other person has responded.
+    preferred_slot = _fmt_slot(booking.preferred_slot_start)
+    secondary_slot_line = (
+        f"- User's secondary/fallback date/time: {_fmt_slot(booking.secondary_slot_start)}\n"
+        if booking.secondary_slot_start else ""
+    )
 
-CLIENT'S CONSTRAINTS (for your own context only — DO NOT read this list
-aloud to the business):
-- Required appointment duration: {booking.required_duration_minutes} minutes
-- Must be scheduled on or before: {booking.max_date.isoformat()}
-- Known open calendar windows:
-{slot_lines}
-
-HOW TO HANDLE TIME PROPOSALS:
-
-{slot_guidance}
-
-There are TWO kinds of time proposals — treat them DIFFERENTLY:
-
-1. TIME YOU PROPOSE TO THE BUSINESS:
-   You have already checked that your suggestion fits the calendar.
-   If the business agrees, accept it immediately and confirm it.
-   Do NOT call `check_slot_fits` on a time you yourself suggested.
-   NEVER reverse a time you proposed — if you asked for 3 PM and
-   they said yes, the answer is yes.
-
-2. TIME THE BUSINESS PROPOSES TO YOU:
-   You MUST call `check_slot_fits` before accepting or rejecting it.
-   Never say "yes" or "no" until the tool has returned a result.
-   Act only on the tool's answer — not your own judgment.
-
-WHEN `check_slot_fits` RETURNS fits=False (business-proposed time):
-1. Politely say that time doesn't quite work for your client and ask
-   if there is any other availability.
-2. Try the tool again on any new proposal from the business.
-3. After a reasonable back-and-forth with no match, ask the business
-   to hold the best offer tentatively: say "Let me quickly check with
-   my client and I'll call you right back." Then end the call politely.
-4. Do not negotiate indefinitely. If nothing fits and they cannot hold
-   a slot, politely end the call.
-
-IF THE BUSINESS CANNOT HOLD WITHOUT IMMEDIATE CONFIRMATION:
-Say: "I understand — I'll check with my client and call you right
-back." Then end the call. Do not commit to any slot yourself.
-
-SPECIAL INSTRUCTIONS FROM THE CLIENT TO RELAY TO THE BUSINESS:
-{booking.special_instructions or "(none — just book the appointment)"}
-
-GUARDRAILS:
-- Never quote or agree to a price as final on the client's behalf.
-- Never share sensitive personal, medical, or financial details beyond
-  what is listed in the special instructions above.
-- Never agree to cancellation policies or binding terms.
-- If the business asks for information you don't have, say your client
-  will follow up directly.
-- If this is the wrong number or business, apologise and hang up.
-"""
+    template = _MISSION_PROMPT_PATH.read_text(encoding="utf-8")
+    return template.format(
+        user_display_name=booking.user_display_name,
+        business_name=booking.business_name,
+        target_type=booking.target_type or "business",
+        followup_clause=followup_clause,
+        target_type_or_appointment=booking.target_type or "appointment",
+        required_duration_minutes=booking.required_duration_minutes,
+        max_date=booking.max_date.isoformat(),
+        preferred_slot=preferred_slot,
+        secondary_slot_line=secondary_slot_line,
+        slot_lines=slot_lines,
+        slot_guidance=slot_guidance,
+        special_instructions=booking.special_instructions or "(none — just book the appointment)",
+    )
 
 
 @dataclass
@@ -228,7 +192,7 @@ class BridgeService:
             state.conversation_file = self._build_conversation_file_path(state.call_sid)
 
             booking = self._booking_loader(state.booking_id)
-            matcher = SlotMatcher(booking.fitting_slots, booking.max_date)
+            matcher = SlotMatcher(booking.fitting_slots, booking.max_date, booking_id=state.booking_id)
 
             await self._append_conversation_line(f"# call_sid={state.call_sid}", state.conversation_file)
             await self._append_conversation_line(f"# booking_id={state.booking_id}", state.conversation_file)

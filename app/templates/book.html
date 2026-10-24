@@ -81,17 +81,18 @@
               <h3>What if your preferred times aren't available?</h3>
               <p class="muted">
                 If your preferred times don't work, we can check your Google Calendar and suggest a
-                free time.
+                free time. Your typed date is always allowed — this window only adds later
+                alternatives, it never cuts your preferred date short.
               </p>
               <label>
-                <input type="checkbox" name="use_calendar" checked />
+                <input type="checkbox" name="use_calendar" />
                 Use Google Calendar to find alternatives
               </label>
-              <label for="win">Calendar availability window</label>
+              <label for="win">How far out the agent may go if preferred times are taken</label>
               <select id="win" name="calendar_window">
                 <option value="today">Today</option>
-                <option value="tomorrow" selected>Tomorrow</option>
-                <option value="this_week">This week</option>
+                <option value="tomorrow">Tomorrow</option>
+                <option value="this_week" selected>This week</option>
               </select>
               <label for="dur">Preferred appointment duration</label>
               <select id="dur" name="duration">

@@ -21,6 +21,7 @@ recording metadata that this module doesn't have.
 
 from __future__ import annotations
 
+import datetime
 import json
 import re
 from pathlib import Path
@@ -32,6 +33,38 @@ from .config import Config
 from .models import NegotiationOutcome
 
 OUTCOME_RE = re.compile(r"^outcome\s*=\s*([a-z_]+)\s*$", re.IGNORECASE)
+
+
+def _fix_year(iso_value: str | None) -> str | None:
+    """Safety-net: correct a Gemini-extracted ISO datetime that has the wrong year.
+
+    Gemini doesn't know the current date, so when a transcript says "October 31st"
+    it may guess 2024 or 2025. If the extracted year is more than 1 year in the
+    past, replace it with the current year (preserving the month/day/time exactly).
+
+    Returns the corrected ISO string, or the original if no fix is needed,
+    or None/unchanged if the value is None or unparseable.
+    """
+    if not iso_value:
+        return iso_value
+    try:
+        dt = datetime.datetime.fromisoformat(str(iso_value).replace("Z", "+00:00"))
+    except ValueError:
+        return iso_value  # unparseable — leave as-is for downstream handling
+
+    today = datetime.date.today()
+    # If the extracted year is more than 1 year behind today, snap to current year.
+    if dt.year < today.year - 1:
+        try:
+            dt = dt.replace(year=today.year)
+        except ValueError:
+            # e.g. Feb 29 in a non-leap year — skip correction
+            pass
+
+    # Preserve original tzinfo format: strip if originally naive, keep if aware
+    if "Z" in str(iso_value) or "+" in str(iso_value).split("T")[-1]:
+        return dt.isoformat()
+    return dt.replace(tzinfo=None).isoformat()
 
 
 def _get_api_key() -> str:
@@ -50,9 +83,14 @@ def _read_outcome_and_body(normalized_text: str) -> tuple[str, str]:
 
 
 def build_extraction_prompt(body_transcript: str, outcome: str) -> str:
+    today = datetime.date.today().isoformat()  # e.g. "2026-10-24"
     return f"""You are analyzing a normalized call transcript between an AI booking
 assistant (AGENT) and a business (USER), for an appointment negotiation.
 The call's classified outcome is: {outcome}
+
+IMPORTANT: Today's date is {today}. Use this to resolve any date references in
+the transcript (e.g. "October 31st", "this Saturday", "next week") to the
+correct full ISO 8601 datetime with the right year. Do NOT use a past year.
 
 Read the transcript below and return ONLY a single JSON object (no markdown
 fences, no commentary) with exactly these fields:
@@ -86,6 +124,8 @@ Rules:
   implies a specific date and time. If only a day of week or vague time is
   given without enough info to construct an ISO datetime, leave it null and
   mention the vague detail in "summary" instead.
+- Always use the year from today's date ({today[:4]}) unless the transcript
+  explicitly states a different year.
 - Do not fabricate a price or condition that wasn't stated.
 - "summary" must be in plain prose, no bullet points, no headers.
 
@@ -165,10 +205,10 @@ def extract(normalized_path: Path) -> dict[str, Any]:
 
     default_result.update(
         {
-            "confirmed_start_iso": parsed.get("confirmed_start_iso"),
-            "confirmed_end_iso": parsed.get("confirmed_end_iso"),
-            "held_offer_start_iso": parsed.get("held_offer_start_iso"),
-            "held_offer_end_iso": parsed.get("held_offer_end_iso"),
+            "confirmed_start_iso": _fix_year(parsed.get("confirmed_start_iso")),
+            "confirmed_end_iso": _fix_year(parsed.get("confirmed_end_iso")),
+            "held_offer_start_iso": _fix_year(parsed.get("held_offer_start_iso")),
+            "held_offer_end_iso": _fix_year(parsed.get("held_offer_end_iso")),
             "price_mentioned": str(parsed.get("price_mentioned") or ""),
             "business_conditions": str(parsed.get("business_conditions") or ""),
             "summary": str(parsed.get("summary") or ""),

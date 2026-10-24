@@ -105,42 +105,47 @@ def create_booking():
             sec_start = sec_datetime
             sec_end = sec_datetime + timedelta(minutes=duration)
 
-        # Determine max_date based on calendar window
+        # Search window for calendar alternatives. Never cap max_date
+        # earlier than the times the user actually typed.
         if calendar_window == "today":
-            max_date = date.today()
+            window_end = date.today()
         elif calendar_window == "tomorrow":
-            max_date = date.today() + timedelta(days=1)
+            window_end = date.today() + timedelta(days=1)
         else:  # "this_week"
-            max_date = date.today() + timedelta(days=7)
+            window_end = date.today() + timedelta(days=7)
+
+        max_candidates = [pref_start.date(), window_end]
+        if sec_start:
+            max_candidates.append(sec_start.date())
+        max_date = max(max_candidates)
 
     except ValueError as e:
         flash(f"Invalid date/time format: {e}", "error")
         return redirect(url_for("bookings.new_booking_form"))
 
-    # Compute fitting_slots
-    if use_calendar:
-        # Get fitting slots from Google Calendar
-        try:
-            fitting_slots = calendar_reader.get_fitting_slots(
-                required_duration_minutes=duration,
-                max_date=max_date,
-                look_ahead_days=7,
-                business_hours_only=True,
-            )
+    # Generate booking ID early so it can be passed to the calendar reader
+    # (which writes the busy-block cache keyed by this ID).
+    booking_id = str(uuid.uuid4())
 
-            if not fitting_slots:
-                flash("⚠ No available slots found in your calendar. Using manual slots.", "warning")
-                # Fall back to manual slots
-                fitting_slots = _build_manual_slots(pref_start, pref_end, sec_start, sec_end)
+    # Always start with the times the user typed as the negotiation anchors.
+    fitting_slots = _build_manual_slots(pref_start, pref_end, sec_start, sec_end)
+
+    if use_calendar:
+        try:
+            # Fetch ALL busy blocks from preferred_date to max_date and write to
+            # busy_cache/<booking_id>.json.  During the live call, check_slot_fits
+            # reads this file — no further calendar API calls are made at call time.
+            busy_blocks = calendar_reader.fetch_busy_blocks_for_booking(
+                booking_id=booking_id,
+                preferred_date=pref_start.date(),
+                max_date=max_date,
+            )
+            if not busy_blocks:
+                flash("⚠ Calendar connected but no busy blocks found — your calendar appears free in this period.", "info")
         except RuntimeError as e:
-            flash(f"Calendar error: {e}. Using manual slots.", "warning")
-            fitting_slots = _build_manual_slots(pref_start, pref_end, sec_start, sec_end)
-    else:
-        # Use manual slots from form
-        fitting_slots = _build_manual_slots(pref_start, pref_end, sec_start, sec_end)
+            flash(f"Calendar warning: {e}. Booking will still be created.", "warning")
 
     # Create booking in database
-    booking_id = str(uuid.uuid4())
 
     try:
         booking = db.create_booking(
@@ -233,6 +238,34 @@ def live_call(booking_id):
     return render_template("call.html", booking=booking, booking_id=booking_id, live=True)
 
 
+@bookings_bp.route("/<booking_id>/status")
+def booking_status(booking_id):
+    """JSON endpoint for the live call page to poll.
+
+    Returns the current booking status so the front-end can automatically
+    redirect to the results page once the call finishes processing.
+    """
+    from flask import jsonify
+    booking = db.get_booking(booking_id)
+    if not booking:
+        return jsonify({"error": "not found"}), 404
+
+    # Check whether result_store has a completed result already
+    has_result = False
+    try:
+        from bookapt import result_store
+        history = result_store.get_booking_history(booking_id)
+        has_result = bool(history.get("calls"))
+    except Exception:
+        pass
+
+    status = booking.get("status", "new")
+    return jsonify({
+        "status": status,
+        "done": status not in ("new", "in_call") or has_result,
+    })
+
+
 @bookings_bp.route("/<booking_id>")
 def view_booking(booking_id):
     """View booking details and call results."""
@@ -301,3 +334,17 @@ def _build_manual_slots(pref_start, pref_end, sec_start=None, sec_end=None) -> l
         slots.append(SlotWindow(start=sec_start, end=sec_end))
 
     return slots
+
+
+def _merge_slots(primary: list[SlotWindow], extra: list[SlotWindow]) -> list[SlotWindow]:
+    """Union two slot lists, dropping exact duplicates, sorted by start."""
+    seen = set()
+    merged: list[SlotWindow] = []
+    for slot in list(primary) + list(extra):
+        key = (slot.start.isoformat(), slot.end.isoformat())
+        if key in seen:
+            continue
+        seen.add(key)
+        merged.append(slot)
+    merged.sort(key=lambda s: s.start)
+    return merged

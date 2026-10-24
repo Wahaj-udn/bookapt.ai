@@ -34,5 +34,10 @@ class Config:
         "GOOGLE_TOKEN_PATH", str(_ROOT / "bookapt_data" / "google_token.json")
     )
     GOOGLE_SCOPES: list[str] = [
-        "https://www.googleapis.com/auth/calendar.readonly"
+        "openid",
+        "https://www.googleapis.com/auth/userinfo.email",
+        "https://www.googleapis.com/auth/userinfo.profile",
+        "https://www.googleapis.com/auth/calendar.readonly",
+        "https://www.googleapis.com/auth/calendar.events",
     ]
+    GOOGLE_CALENDAR_TIMEZONE: str = os.environ.get("GOOGLE_CALENDAR_TIMEZONE", "")

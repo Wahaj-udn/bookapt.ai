@@ -31,14 +31,8 @@ os.environ["OAUTHLIB_INSECURE_TRANSPORT"] = "1"
 
 calendar_bp = Blueprint("calendar", __name__, url_prefix="/calendar")
 
-# OAuth scopes — read-only for free/busy queries
-# If you later want to write events back (Phase 8+), add "calendar.events"
-SCOPES = [
-    "openid",
-    "https://www.googleapis.com/auth/userinfo.email",
-    "https://www.googleapis.com/auth/userinfo.profile",
-    "https://www.googleapis.com/auth/calendar.readonly",  # Read-only for free/busy
-]
+# Keep in sync with config.Config.GOOGLE_SCOPES
+SCOPES = list(config.Config.GOOGLE_SCOPES)
 
 
 def _build_flow(state: str = None) -> Flow:
@@ -130,7 +124,8 @@ def callback():
         session.pop("oauth_state", None)
         session.pop("code_verifier", None)
 
-        flash(f"Successfully connected Google Calendar for {user_info.get('email', 'your account')}!", "success")
+        connected_as = (user_info or {}).get("email") or "your account"
+        flash(f"Successfully connected Google Calendar for {connected_as}!", "success")
         return redirect("/")
 
     except Exception as e:

@@ -193,6 +193,20 @@ def retry_all(app) -> dict[str, Any]:
             except Exception as wa_exc:
                 app.logger.warning("pipeline-queue: WhatsApp notification error: %s", wa_exc)
 
+            try:
+                from app import calendar_reader as app_calendar
+                from app import db as app_db
+                booking_row = None
+                try:
+                    booking_row = app_db.get_booking(booking_id)
+                except Exception:
+                    booking_row = None
+                event_link = app_calendar.maybe_add_booked_event(booking_row, extraction)
+                if event_link:
+                    app.logger.info("pipeline-queue: calendar event created -> %s", event_link)
+            except Exception as cal_exc:
+                app.logger.warning("pipeline-queue: Google Calendar write-back error: %s", cal_exc)
+
             remove_entry(call_sid)
             succeeded += 1
             app.logger.info("pipeline-queue: retry succeeded for call_sid=%s", call_sid)
