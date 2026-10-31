@@ -26,7 +26,7 @@ def index():
     """Main dashboard — show saved providers and quick booking form."""
 
     # Get user info from session (if logged in)
-    user_name = session.get("user_name", "Guest")
+    user_name = session.get("user_name", "Wahaj")
 
     # Get all saved business records
     saved_providers = db.get_all_business_records()

@@ -3,6 +3,7 @@
 
 This version uses http://localhost:5001/callback as the redirect URI,
 which is what your friend likely configured in Google Console.
+
 """
 
 import os

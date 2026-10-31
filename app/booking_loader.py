@@ -71,7 +71,7 @@ def booking_loader(booking_id: str) -> BookingRequest:
         required_duration_minutes=row["required_duration_min"],
         fitting_slots=fitting_slots,
         special_instructions=row.get("special_instructions", ""),
-        user_display_name="the client",  # TODO: Pull from user profile in Phase 9
+        user_display_name="Wahaj",  # User's name — passed to agent for natural speech
         call_from_number="",  # Uses default Twilio number from config
         is_followup_call=False,  # Caller overrides if needed
         prior_offer_summary="",  # Caller overrides if needed

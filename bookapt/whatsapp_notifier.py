@@ -47,7 +47,7 @@ def _build_message(
     summary: str,
 ) -> str:
     """Build a concise WhatsApp notification message."""
-    lines = [f"*BookAppt.ai — Call Result*\n*Business:* {business_name}"]
+    lines = [f"*BookApt.ai — Call Result*\n*Business:* {business_name}"]
 
     outcome_clean = outcome.replace("_", " ").title()
 
@@ -80,7 +80,7 @@ def _build_message(
         short_summary = summary[:300] + ("…" if len(summary) > 300 else "")
         lines.append(f"\n_{short_summary}_")
 
-    lines.append("\n_BookAppt.ai — your AI booking assistant_")
+    lines.append("\n_BookApt.ai — your AI booking assistant_")
     return "\n".join(lines)
 
 

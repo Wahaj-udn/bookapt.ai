@@ -496,7 +496,7 @@ def _build_event_description(
     business_conditions: str,
 ) -> str:
     lines = [
-        "Booked by BookAppt.ai",
+        "Booked by BookApt.ai",
         "",
         f"Provider: {business_name}",
     ]
@@ -560,7 +560,7 @@ def maybe_add_booked_event(
     if "https://www.googleapis.com/auth/calendar.events" not in granted:
         raise RuntimeError(
             "Calendar is connected read-only. Disconnect and reconnect at "
-            "/calendar/auth so BookAppt can add events."
+            "/calendar/auth so BookApt.ai can add events."
         )
 
     tz_name = _local_tz_name()

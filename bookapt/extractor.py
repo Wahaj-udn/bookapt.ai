@@ -82,11 +82,12 @@ def _read_outcome_and_body(normalized_text: str) -> tuple[str, str]:
     return outcome, body
 
 
-def build_extraction_prompt(body_transcript: str, outcome: str) -> str:
+def build_extraction_prompt(body_transcript: str, outcome: str, user_name: str = "Wahaj") -> str:
     today = datetime.date.today().isoformat()  # e.g. "2026-10-24"
     return f"""You are analyzing a normalized call transcript between an AI booking
 assistant (AGENT) and a business (USER), for an appointment negotiation.
 The call's classified outcome is: {outcome}
+The client (person the agent was booking for) is named: {user_name}
 
 IMPORTANT: Today's date is {today}. Use this to resolve any date references in
 the transcript (e.g. "October 31st", "this Saturday", "next week") to the
@@ -114,7 +115,9 @@ fences, no commentary) with exactly these fields:
   "summary": string                        // a natural, plain-paragraph summary
                                             // (3-6 sentences) of what happened on
                                             // the call, written for the end user
-                                            // (the client) to read later. Mention
+                                            // (the client, named {user_name}) to
+                                            // read later. Use the client's name
+                                            // ({user_name}) naturally. Mention
                                             // the business's name/role if stated,
                                             // what was discussed, and the result.
 }}
@@ -181,7 +184,7 @@ def extract(normalized_path: Path) -> dict[str, Any]:
 
     try:
         client = genai.Client(api_key=api_key)
-        prompt = build_extraction_prompt(body, outcome)
+        prompt = build_extraction_prompt(body, outcome, user_name="Wahaj")
 
         def _call_primary() -> str:
             resp = client.models.generate_content(model=model_name, contents=prompt)
