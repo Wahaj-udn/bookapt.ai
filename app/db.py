@@ -63,7 +63,6 @@ CREATE TABLE IF NOT EXISTS business_records (
     created_at  TEXT    NOT NULL DEFAULT (datetime('now'))
 );
 
-CREATE UNIQUE INDEX IF NOT EXISTS uq_business_phone ON business_records(phone);
 
 CREATE TABLE IF NOT EXISTS bookings (
     id                    TEXT    PRIMARY KEY,
@@ -96,14 +95,14 @@ def init_db() -> None:
 # ---------------------------------------------------------------------------
 
 def create_business_record(title: str, target_type: str, phone: str) -> dict[str, Any]:
-    """Insert a business record. If `phone` already exists, returns the existing row."""
+    """Insert a new business record and return it."""
     with _conn() as con:
-        con.execute(
-            "INSERT OR IGNORE INTO business_records (title, target_type, phone) VALUES (?, ?, ?)",
+        cur = con.execute(
+            "INSERT INTO business_records (title, target_type, phone) VALUES (?, ?, ?)",
             (title.strip(), target_type.strip(), phone.strip()),
         )
         row = con.execute(
-            "SELECT * FROM business_records WHERE phone = ?", (phone.strip(),)
+            "SELECT * FROM business_records WHERE id = ?", (cur.lastrowid,)
         ).fetchone()
         return dict(row)
 
@@ -121,9 +120,15 @@ def get_all_business_records() -> list[dict[str, Any]]:
         return [
             dict(r)
             for r in con.execute(
-                "SELECT * FROM business_records ORDER BY title COLLATE NOCASE"
+                "SELECT * FROM business_records ORDER BY created_at DESC"
             ).fetchall()
         ]
+
+
+def delete_business_record(record_id: int) -> None:
+    """Delete a business record by ID."""
+    with _conn() as con:
+        con.execute("DELETE FROM business_records WHERE id = ?", (record_id,))
 
 
 # ---------------------------------------------------------------------------

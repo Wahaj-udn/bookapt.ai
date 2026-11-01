@@ -77,8 +77,11 @@ def add_provider():
 @providers_bp.route("/delete/<int:provider_id>", methods=["POST"])
 def delete_provider(provider_id):
     """Delete a business record."""
-    # TODO: Implement delete functionality in db.py
-    flash("Provider deleted", "info")
+    try:
+        db.delete_business_record(provider_id)
+        flash("Provider deleted.", "success")
+    except Exception as e:
+        flash(f"Error deleting provider: {e}", "error")
     return redirect(url_for("providers.list_providers"))
 
 
